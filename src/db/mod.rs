@@ -1,4 +1,9 @@
 pub mod create_tables;
+pub mod lecture_notes;
+pub mod sections;
+pub mod subsections;
+pub mod users;
+
 use dotenvy::dotenv;
 use std::env;
 
