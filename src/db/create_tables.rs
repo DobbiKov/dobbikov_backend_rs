@@ -3,7 +3,8 @@ async fn create_users_table(pool: &sqlx::Pool<sqlx::MySql>) {
         CREATE TABLE IF NOT EXISTS users(\
             id INTEGER AUTO_INCREMENT PRIMARY KEY,\
             username TEXT NOT NULL,\
-            password TEXT NOT NULL\
+            password TEXT NOT NULL,\
+            is_admin TINYINT(1) DEFAULT 0\
             );\
         ";
     let _ = sqlx::query(query_str).execute(pool).await;
