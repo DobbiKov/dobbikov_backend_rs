@@ -2,6 +2,7 @@ use pass_hashing::hash_password;
 
 pub mod db;
 pub mod pass_hashing;
+pub mod services;
 
 #[cfg(test)]
 mod tests;
@@ -17,4 +18,15 @@ async fn main() {
         }
     };
     db::create_tables::create_required_tables(&pool).await;
+    let users = db::users::get_users(
+        &pool,
+        db::users::GetUsersForm {
+            id: None,
+            username: None,
+            password: None,
+        },
+    )
+    .await
+    .unwrap_or(Vec::new());
+    println!("{:?}", users);
 }
