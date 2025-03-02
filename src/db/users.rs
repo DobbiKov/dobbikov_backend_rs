@@ -49,51 +49,46 @@ pub struct GetUsersForm {
 pub enum GetUsersError {
     UnexpectedError,
 }
+enum vecWrapper {
+    String(String),
+    Num(u32),
+    Bool(bool),
+}
 pub async fn get_users(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetUsersForm,
 ) -> Result<Vec<UserFromDb>, GetUsersError> {
-    let mut after_where: String = "".to_string();
-    let mut smth_before: bool = false;
+    let mut conditions: Vec<String> = Vec::new();
+    let mut params: Vec<vecWrapper> = Vec::new();
+
     if form.id.is_some() {
-        if smth_before {
-            after_where += " AND ";
-        }
-        after_where += "id = ?";
-        smth_before = true;
+        conditions.push("id = ?".to_string());
+        params.push(vecWrapper::Num(form.id.unwrap()));
     }
     if form.username.is_some() {
-        if smth_before {
-            after_where += " AND ";
-        }
-        after_where += "username = ?";
-        smth_before = true;
+        conditions.push("username = ?".to_string());
+        params.push(vecWrapper::String(form.username.unwrap()));
     }
     if form.password.is_some() {
-        if smth_before {
-            after_where += " AND ";
-        }
-        after_where += "password = ?";
-        smth_before = true;
+        conditions.push("password = ?".to_string());
+        params.push(vecWrapper::String(form.password.unwrap()));
     }
 
     let pre_query_str = format!(
         "SELECT * FROM users {} {}",
-        if smth_before { "WHERE" } else { "" },
-        after_where
+        if !conditions.is_empty() { "WHERE" } else { "" },
+        conditions.join(" AND ")
     );
     let query_str = pre_query_str.as_str();
     println!("{}", query_str);
     let mut query = sqlx::query_as(query_str);
 
-    if form.id.is_some() {
-        query = query.bind(form.id.unwrap());
-    }
-    if form.username.is_some() {
-        query = query.bind(form.username.unwrap());
-    }
-    if form.password.is_some() {
-        query = query.bind(form.password.unwrap());
+    for param in params {
+        query = match param {
+            vecWrapper::String(val) => query.bind(val),
+            vecWrapper::Num(val) => query.bind(val),
+            vecWrapper::Bool(val) => query.bind(val),
+        };
     }
 
     let users: Vec<UserFromDb> = query.fetch_all(pool).await.unwrap();
