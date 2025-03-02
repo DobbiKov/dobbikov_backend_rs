@@ -1,7 +1,7 @@
 async fn create_users_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_str = "\
         CREATE TABLE IF NOT EXISTS users(\
-            id INTEGER AUTO_INCREMENT PRIMARY KEY,\
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
             username TEXT NOT NULL,\
             password TEXT NOT NULL,\
             is_admin TINYINT(1) DEFAULT 0\

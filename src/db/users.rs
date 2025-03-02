@@ -7,7 +7,7 @@ pub struct CreateUserForm {
 
 #[derive(FromRow, Debug)]
 pub struct UserFromDb {
-    pub id: i32,
+    pub id: u32,
     pub username: String,
     pub password: String,
     pub is_admin: bool,
