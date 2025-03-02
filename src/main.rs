@@ -18,6 +18,7 @@ async fn main() {
         }
     };
     db::create_tables::create_required_tables(&pool).await;
+
     let users = db::users::get_users(
         &pool,
         db::users::GetUsersForm {
