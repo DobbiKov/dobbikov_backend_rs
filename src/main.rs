@@ -29,4 +29,17 @@ async fn main() {
     .await
     .unwrap_or(Vec::new());
     println!("{:?}", users);
+
+    let user = db::users::get_user(
+        &pool,
+        db::users::GetUsersForm {
+            id: None,
+            username: Some("hey".to_string()),
+            password: None,
+        },
+    )
+    .await;
+    if let Ok(res) = user {
+        println!("{:?}", res)
+    }
 }

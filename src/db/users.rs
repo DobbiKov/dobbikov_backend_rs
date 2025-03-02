@@ -13,17 +13,6 @@ pub struct UserFromDb {
     pub is_admin: bool,
 }
 
-pub struct GetUserForm {
-    pub id: Option<u32>,
-    pub username: Option<String>,
-    pub password: Option<String>,
-}
-
-pub enum GetUserError {
-    NoInfoToGetFromProvided,
-    NoResults,
-}
-
 pub async fn create_user(
     pool: &sqlx::Pool<sqlx::MySql>,
     user_form: CreateUserForm,
@@ -46,6 +35,13 @@ pub struct GetUsersForm {
     pub username: Option<String>,
     pub password: Option<String>,
 }
+
+impl GetUsersForm {
+    pub fn is_all_none(&self) -> bool {
+        self.id.is_none() && self.username.is_none() && self.password.is_none()
+    }
+}
+
 pub enum GetUsersError {
     UnexpectedError,
 }
@@ -93,4 +89,29 @@ pub async fn get_users(
 
     let users: Vec<UserFromDb> = query.fetch_all(pool).await.unwrap();
     Ok(users)
+}
+
+pub enum GetUserError {
+    NoInfoToGetFromProvided,
+    NoResults,
+    UnexpectedError,
+}
+
+pub async fn get_user(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    form: GetUsersForm,
+) -> Result<UserFromDb, GetUserError> {
+    if form.is_all_none() {
+        return Err(GetUserError::NoInfoToGetFromProvided);
+    }
+    let res = get_users(pool, form).await;
+    if res.is_err() {
+        return Err(GetUserError::UnexpectedError);
+    }
+    let mut res = res.unwrap_or(Vec::new());
+    if res.is_empty() {
+        return Err(GetUserError::NoResults);
+    }
+    let ret_res = res.swap_remove(0);
+    Ok(ret_res)
 }
