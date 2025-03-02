@@ -13,9 +13,9 @@ async fn create_users_table(pool: &sqlx::Pool<sqlx::MySql>) {
 async fn create_sections_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_str = "\
          CREATE TABLE IF NOT EXISTS sections (\
-             id INT AUTO_INCREMENT PRIMARY KEY,\
+             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
              title VARCHAR(255) NOT NULL,\
-             position INT NOT NULL UNIQUE\
+             position INT UNSIGNED NOT NULL UNIQUE\
          );\
         ";
     let _ = sqlx::query(query_str).execute(pool).await;
@@ -24,10 +24,10 @@ async fn create_sections_table(pool: &sqlx::Pool<sqlx::MySql>) {
 async fn create_subsections_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_str = "\
         CREATE TABLE IF NOT EXISTS subsections (\
-            id INT AUTO_INCREMENT PRIMARY KEY,\
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
             title VARCHAR(255) NOT NULL,\
-            position INT UNIQUE,\
-            section_id INT NOT NULL,\
+            position INT UNSIGNED UNIQUE,\
+            section_id INT UNSIGNED NOT NULL,\
             FOREIGN KEY (section_id) REFERENCES sections(id)\
         );\
         ";
@@ -37,12 +37,12 @@ async fn create_subsections_table(pool: &sqlx::Pool<sqlx::MySql>) {
 async fn create_notes_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_str = "\
         CREATE TABLE IF NOT EXISTS notes (\
-            id INT AUTO_INCREMENT PRIMARY KEY,\
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
             name TEXT NOT NULL,\
             url TEXT NOT NULL,\
-            position INT UNIQUE,\
-            section_id INT,\
-            subsection_id INT,\
+            position INT UNSIGNED UNIQUE,\
+            section_id INT UNSIGNED,\
+            subsection_id INT UNSIGNED,\
             FOREIGN KEY (section_id) REFERENCES sections(id),\
             FOREIGN KEY (subsection_id) REFERENCES subsections(id)\
         );\
