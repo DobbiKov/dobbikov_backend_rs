@@ -1,4 +1,7 @@
+use crate::db::VecWrapper;
 use sqlx::{mysql::MySqlRow, prelude::FromRow, Column, Executor, Row};
+
+use super::OrAnd;
 
 pub struct CreateUserForm {
     pub username: String,
@@ -34,6 +37,7 @@ pub struct GetUsersForm {
     pub id: Option<u32>,
     pub username: Option<String>,
     pub password: Option<String>,
+    pub or_and: OrAnd,
 }
 
 impl GetUsersForm {
@@ -45,35 +49,33 @@ impl GetUsersForm {
 pub enum GetUsersError {
     UnexpectedError,
 }
-enum vecWrapper {
-    String(String),
-    Num(u32),
-    Bool(bool),
-}
 pub async fn get_users(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetUsersForm,
 ) -> Result<Vec<UserFromDb>, GetUsersError> {
     let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<vecWrapper> = Vec::new();
+    let mut params: Vec<VecWrapper> = Vec::new();
 
     if form.id.is_some() {
         conditions.push("id = ?".to_string());
-        params.push(vecWrapper::Num(form.id.unwrap()));
+        params.push(VecWrapper::Num(form.id.unwrap()));
     }
     if form.username.is_some() {
         conditions.push("username = ?".to_string());
-        params.push(vecWrapper::String(form.username.unwrap()));
+        params.push(VecWrapper::String(form.username.unwrap()));
     }
     if form.password.is_some() {
         conditions.push("password = ?".to_string());
-        params.push(vecWrapper::String(form.password.unwrap()));
+        params.push(VecWrapper::String(form.password.unwrap()));
     }
 
     let pre_query_str = format!(
         "SELECT * FROM users {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
-        conditions.join(" AND ")
+        conditions.join(match form.or_and {
+            OrAnd::And => " AND ",
+            OrAnd::Or => " OR ",
+        })
     );
     let query_str = pre_query_str.as_str();
     println!("{}", query_str);
@@ -81,9 +83,9 @@ pub async fn get_users(
 
     for param in params {
         query = match param {
-            vecWrapper::String(val) => query.bind(val),
-            vecWrapper::Num(val) => query.bind(val),
-            vecWrapper::Bool(val) => query.bind(val),
+            VecWrapper::String(val) => query.bind(val),
+            VecWrapper::Num(val) => query.bind(val),
+            VecWrapper::Bool(val) => query.bind(val),
         };
     }
 

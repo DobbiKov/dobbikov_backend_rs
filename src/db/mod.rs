@@ -5,7 +5,7 @@ pub mod subsections;
 pub mod users;
 
 use dotenvy::dotenv;
-use std::env;
+use std::{default, env};
 
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::Connection;
@@ -18,4 +18,17 @@ pub async fn establish_connection() -> Result<sqlx::Pool<sqlx::MySql>, sqlx::Err
         .max_connections(5)
         .connect(&database_url)
         .await
+}
+
+enum VecWrapper {
+    String(String),
+    Num(u32),
+    Bool(bool),
+}
+
+#[derive(Default)]
+pub enum OrAnd {
+    Or,
+    #[default]
+    And,
 }
