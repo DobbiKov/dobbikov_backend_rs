@@ -1,11 +1,14 @@
+use crate::db::{OrAnd, VecWrapper};
+
 pub struct CreateSectionForm {
     pub title: String,
 }
 
+#[derive(sqlx::FromRow, Debug)]
 pub struct SectionFromDb {
     pub id: u32,
     pub title: String,
-    pub position: i32,
+    pub position: u32,
 }
 
 pub async fn get_max_position(pool: &sqlx::Pool<sqlx::MySql>) -> Option<u32> {
@@ -17,59 +20,78 @@ pub async fn get_max_position(pool: &sqlx::Pool<sqlx::MySql>) -> Option<u32> {
     max.unwrap_or_default()
 }
 
-//pub async fn get_users(
-//    pool: &sqlx::Pool<sqlx::MySql>,
-//    form: GetUsersForm,
-//) -> Result<Vec<UserFromDb>, GetUsersError> {
-//    let mut conditions: Vec<String> = Vec::new();
-//    let mut params: Vec<vecWrapper> = Vec::new();
-//
-//    if form.id.is_some() {
-//        conditions.push("id = ?".to_string());
-//        params.push(vecWrapper::Num(form.id.unwrap()));
-//    }
-//    if form.username.is_some() {
-//        conditions.push("username = ?".to_string());
-//        params.push(vecWrapper::String(form.username.unwrap()));
-//    }
-//    if form.password.is_some() {
-//        conditions.push("password = ?".to_string());
-//        params.push(vecWrapper::String(form.password.unwrap()));
-//    }
-//
-//    let pre_query_str = format!(
-//        "SELECT * FROM users {} {}",
-//        if !conditions.is_empty() { "WHERE" } else { "" },
-//        conditions.join(" AND ")
-//    );
-//    let query_str = pre_query_str.as_str();
-//    println!("{}", query_str);
-//    let mut query = sqlx::query_as(query_str);
-//
-//    for param in params {
-//        query = match param {
-//            vecWrapper::String(val) => query.bind(val),
-//            vecWrapper::Num(val) => query.bind(val),
-//            vecWrapper::Bool(val) => query.bind(val),
-//        };
-//    }
-//
-//    let users: Vec<UserFromDb> = query.fetch_all(pool).await.unwrap();
-//    Ok(users)
-//}
-//pub async fn create_user(
-//    pool: &sqlx::Pool<sqlx::MySql>,
-//    user_form: CreateSectionForm,
-//) -> Result<(), ()> {
-//    let res = sqlx::query!(
-//        "INSERT INTO users (username, password) VALUES (?, ?)",
-//        user_form.username,
-//        user_form.password
-//    )
-//    .execute(pool)
-//    .await;
-//    match res {
-//        Ok(_) => Ok(()),
-//        Err(_) => Err(()),
-//    }
-//}
+pub struct GetSectionsForm {
+    pub id: Option<u32>,
+    pub title: Option<String>,
+    pub position: Option<u32>,
+    pub or_and: OrAnd,
+}
+
+pub enum GetSectionsError {
+    UnexpectedError,
+}
+
+pub async fn get_sections(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    form: GetSectionsForm,
+) -> Result<Vec<SectionFromDb>, GetSectionsError> {
+    let mut conditions: Vec<String> = Vec::new();
+    let mut params: Vec<VecWrapper> = Vec::new();
+
+    if form.id.is_some() {
+        conditions.push("id = ?".to_string());
+        params.push(VecWrapper::Num(form.id.unwrap()));
+    }
+    if form.title.is_some() {
+        conditions.push("title = ?".to_string());
+        params.push(VecWrapper::String(form.title.unwrap()));
+    }
+    if form.position.is_some() {
+        conditions.push("position = ?".to_string());
+        params.push(VecWrapper::Num(form.position.unwrap()));
+    }
+
+    let pre_query_str = format!(
+        "SELECT * FROM sections {} {}",
+        if !conditions.is_empty() { "WHERE" } else { "" },
+        conditions.join(match form.or_and {
+            OrAnd::And => " AND ",
+            OrAnd::Or => " OR ",
+        })
+    );
+    let query_str = pre_query_str.as_str();
+    println!("{}", query_str);
+    let mut query = sqlx::query_as(query_str);
+
+    for param in params {
+        query = match param {
+            VecWrapper::String(val) => query.bind(val),
+            VecWrapper::Num(val) => query.bind(val),
+            VecWrapper::Bool(val) => query.bind(val),
+        };
+    }
+
+    let sections: Vec<SectionFromDb> = query.fetch_all(pool).await.unwrap();
+    Ok(sections)
+}
+
+pub async fn create_section(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    section_form: CreateSectionForm,
+) -> Result<(), ()> {
+    let next_pos = match get_max_position(pool).await {
+        Some(num) => num + 1,
+        None => 0,
+    };
+    let res = sqlx::query!(
+        "INSERT INTO sections (title, position) VALUES (?, ?)",
+        section_form.title,
+        next_pos
+    )
+    .execute(pool)
+    .await;
+    match res {
+        Ok(_) => Ok(()),
+        Err(_) => Err(()),
+    }
+}
