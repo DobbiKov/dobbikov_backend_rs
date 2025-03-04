@@ -4,7 +4,7 @@ pub struct CreateSectionForm {
     pub title: String,
 }
 
-#[derive(sqlx::FromRow, Debug)]
+#[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
 pub struct SectionFromDb {
     pub id: u32,
     pub title: String,
@@ -17,7 +17,7 @@ pub async fn get_max_position(pool: &sqlx::Pool<sqlx::MySql>) -> Option<u32> {
     let query = sqlx::query_scalar(query_str);
 
     let max: Result<Option<u32>, sqlx::Error> = query.fetch_one(pool).await;
-    max.unwrap_or_default()
+    max.unwrap_or(None)
 }
 
 pub struct GetSectionsForm {
@@ -94,4 +94,21 @@ pub async fn create_section(
         Ok(_) => Ok(()),
         Err(_) => Err(()),
     }
+}
+
+pub struct UpdateSectionForm {
+    pub title: Option<String>,
+}
+
+pub enum UpdateSectionsError {
+    UnexpectedError,
+    NotFoundError,
+}
+
+pub async fn update_sections(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    section_form: UpdateSectionForm,
+    identified_by: GetSectionsForm,
+) -> Result<(), UpdateSectionsError> {
+    todo!()
 }
