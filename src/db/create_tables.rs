@@ -56,3 +56,16 @@ pub async fn create_required_tables(pool: &sqlx::Pool<sqlx::MySql>) {
     create_subsections_table(pool).await;
     create_notes_table(pool).await;
 }
+pub async fn drop_all_tables(pool: &sqlx::Pool<sqlx::MySql>) {
+    let query_strs = [
+        "DROP TABLE notes;",
+        "DROP TABLE subsections;",
+        "DROP TABLE sections;",
+        "DROP TABLE users;",
+    ];
+    let table_names = ["notes", "subsections", "sections", "users"];
+    for table_name in table_names {
+        let query_str = format!("DROP TABLE IF EXISTS {} ;", table_name);
+        let _ = sqlx::query(query_str.as_str()).execute(pool).await;
+    }
+}

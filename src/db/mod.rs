@@ -20,6 +20,16 @@ pub async fn establish_connection() -> Result<sqlx::Pool<sqlx::MySql>, sqlx::Err
         .await
 }
 
+pub async fn establish_connection_for_testing() -> Result<sqlx::Pool<sqlx::MySql>, sqlx::Error> {
+    dotenv().ok();
+
+    let database_url = env::var("TESTING_DATABASE_URL").expect("DATABASE_URL must be set");
+    MySqlPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await
+}
+
 enum VecWrapper {
     String(String),
     Num(u32),

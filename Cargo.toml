@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = {version = "1.43.0"}
+tokio = {version = "1.43.0", features=["rt-multi-thread"]}
 axum = {version = "0.8.1"}
 dotenvy = { version="0.15" }
 sqlx = { version="0.8", features=[ "mysql", "runtime-tokio", "tls-native-tls" ] }

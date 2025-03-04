@@ -1,4 +1,5 @@
 use super::pass_hashing::hash_password;
+mod db;
 
 #[test]
 fn test_hashing() {
