@@ -8,7 +8,7 @@ pub struct CreateUserForm {
     pub password: String,
 }
 
-#[derive(FromRow, Debug)]
+#[derive(FromRow, Debug, PartialEq, Eq)]
 pub struct UserFromDb {
     pub id: u32,
     pub username: String,
