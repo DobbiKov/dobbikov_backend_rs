@@ -20,6 +20,7 @@ pub async fn get_max_position(pool: &sqlx::Pool<sqlx::MySql>) -> Option<u32> {
     max.unwrap_or(None)
 }
 
+#[derive(Clone)]
 pub struct GetSectionsForm {
     pub id: Option<u32>,
     pub title: Option<String>,
@@ -83,6 +84,7 @@ pub async fn create_section(
         Some(num) => num + 1,
         None => 0,
     };
+
     let res = sqlx::query!(
         "INSERT INTO sections (title, position) VALUES (?, ?)",
         section_form.title,
@@ -99,10 +101,16 @@ pub async fn create_section(
 pub struct UpdateSectionForm {
     pub title: Option<String>,
 }
+impl UpdateSectionForm {
+    pub fn is_all_none(&self) -> bool {
+        self.title.is_none()
+    }
+}
 
 pub enum UpdateSectionsError {
     UnexpectedError,
     NotFoundError,
+    NothingToUpdateError,
 }
 
 pub async fn update_sections(
@@ -110,5 +118,74 @@ pub async fn update_sections(
     section_form: UpdateSectionForm,
     identified_by: GetSectionsForm,
 ) -> Result<(), UpdateSectionsError> {
-    todo!()
+    //verify if there's no such section to update
+    if section_form.is_all_none() {
+        return Err(UpdateSectionsError::NothingToUpdateError);
+    }
+    let sections_q = get_sections(pool, identified_by.clone()).await;
+    if sections_q.is_err() {
+        return Err(UpdateSectionsError::UnexpectedError);
+    }
+    if let Ok(res) = sections_q {
+        if res.is_empty() {
+            return Err(UpdateSectionsError::NotFoundError);
+        }
+    }
+
+    //updating query
+    let mut update_columns: Vec<String> = Vec::new();
+    let mut update_params: Vec<VecWrapper> = Vec::new();
+    let mut conditions: Vec<String> = Vec::new();
+    let mut params: Vec<VecWrapper> = Vec::new();
+
+    if section_form.title.is_some() {
+        conditions.push("title = ?".to_string());
+        params.push(VecWrapper::String(section_form.title.unwrap()));
+    }
+
+    if identified_by.id.is_some() {
+        conditions.push("id = ?".to_string());
+        params.push(VecWrapper::Num(identified_by.id.unwrap()));
+    }
+    if identified_by.title.is_some() {
+        conditions.push("title = ?".to_string());
+        params.push(VecWrapper::String(identified_by.title.unwrap()));
+    }
+    if identified_by.position.is_some() {
+        conditions.push("position = ?".to_string());
+        params.push(VecWrapper::Num(identified_by.position.unwrap()));
+    }
+
+    let pre_query_str = format!(
+        "UPDATE sections SET {} WHERE {}",
+        update_columns.join(", "),
+        conditions.join(match identified_by.or_and {
+            OrAnd::And => " AND ",
+            OrAnd::Or => " OR ",
+        })
+    );
+    let query_str = pre_query_str.as_str();
+
+    let mut query = sqlx::query(query_str);
+
+    for param in update_params {
+        query = match param {
+            VecWrapper::String(val) => query.bind(val),
+            VecWrapper::Num(val) => query.bind(val),
+            VecWrapper::Bool(val) => query.bind(val),
+        };
+    }
+
+    for param in params {
+        query = match param {
+            VecWrapper::String(val) => query.bind(val),
+            VecWrapper::Num(val) => query.bind(val),
+            VecWrapper::Bool(val) => query.bind(val),
+        };
+    }
+    let res = query.execute(pool).await;
+    match res {
+        Ok(_) => Ok(()),
+        Err(_) => Err(UpdateSectionsError::UnexpectedError),
+    }
 }
