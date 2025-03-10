@@ -107,6 +107,7 @@ impl UpdateSectionForm {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum UpdateSectionsError {
     UnexpectedError,
     NotFoundError,
@@ -139,8 +140,8 @@ pub async fn update_sections(
     let mut params: Vec<VecWrapper> = Vec::new();
 
     if section_form.title.is_some() {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(section_form.title.unwrap()));
+        update_columns.push("title = ?".to_string());
+        update_params.push(VecWrapper::String(section_form.title.unwrap()));
     }
 
     if identified_by.id.is_some() {
@@ -157,8 +158,9 @@ pub async fn update_sections(
     }
 
     let pre_query_str = format!(
-        "UPDATE sections SET {} WHERE {}",
+        "UPDATE sections SET {} {} {}",
         update_columns.join(", "),
+        if conditions.is_empty() { "" } else { "WHERE" },
         conditions.join(match identified_by.or_and {
             OrAnd::And => " AND ",
             OrAnd::Or => " OR ",
@@ -183,9 +185,13 @@ pub async fn update_sections(
             VecWrapper::Bool(val) => query.bind(val),
         };
     }
+    //println!("{}", query);
     let res = query.execute(pool).await;
     match res {
         Ok(_) => Ok(()),
-        Err(_) => Err(UpdateSectionsError::UnexpectedError),
+        Err(e) => {
+            println!("{:?}", e);
+            Err(UpdateSectionsError::UnexpectedError)
+        }
     }
 }
