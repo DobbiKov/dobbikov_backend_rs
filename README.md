@@ -31,3 +31,13 @@ SALT_FOR_HASHING="<your hash>"
 
 ## Tests
 The tests are divided into feature-tests and db tests. Run `make test` in order to run tests, the tests are ran signle-threaded to make sure the empty state of the database during running tests.
+
+## TODO:
+
+- [ ] sections swapping 
+- [ ] subsections implementation
+- [ ] notes implementation
+
+- [ ] service implementation
+- [ ] API implementation
+
