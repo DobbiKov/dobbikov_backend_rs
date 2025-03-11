@@ -321,5 +321,54 @@ pub async fn update_section_test() {
         }
     );
 
+    // update all
+    //actually updates
+    let res = db::sections::update_sections(
+        &pool,
+        UpdateSectionForm {
+            title: Some("same_title?".to_string()),
+        },
+        GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            or_and: Default::default(),
+        },
+    )
+    .await;
+    println!("{:?}", res);
+    assert!(res.is_ok());
+
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            or_and: Default::default(),
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "same_title?".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "same_title?".to_string(),
+            position: 1
+        }
+    );
+
     db::create_tables::drop_all_tables(&pool).await;
 }
