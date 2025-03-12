@@ -76,7 +76,7 @@ pub async fn get_sections_example() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await

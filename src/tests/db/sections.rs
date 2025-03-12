@@ -22,7 +22,7 @@ pub async fn create_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -44,7 +44,7 @@ pub async fn create_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -75,7 +75,7 @@ pub async fn create_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -164,7 +164,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -186,7 +186,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -217,7 +217,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -253,7 +253,7 @@ pub async fn update_section_test() {
             id: Some(90),
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -267,7 +267,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -283,7 +283,7 @@ pub async fn update_section_test() {
             id: Some(1),
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -296,7 +296,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -332,7 +332,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -345,7 +345,7 @@ pub async fn update_section_test() {
             id: None,
             title: None,
             position: None,
-            or_and: Default::default(),
+            ..Default::default()
         },
     )
     .await;
@@ -370,5 +370,141 @@ pub async fn update_section_test() {
         }
     );
 
+    db::create_tables::drop_all_tables(&pool).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+pub async fn limit_test() {
+    let pool: sqlx::Pool<sqlx::MySql>;
+
+    match db::establish_connection_for_testing().await {
+        Ok(conn) => pool = conn,
+        Err(_) => {
+            panic!("an error occured")
+        }
+    };
+    db::create_tables::drop_all_tables(&pool).await;
+    db::create_tables::create_required_tables(&pool).await;
+
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    assert_eq!(sections.unwrap_or_default().len(), 0);
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "new_title_0".to_string(),
+        },
+    )
+    .await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "title haha".to_string(),
+        },
+    )
+    .await;
+
+    // limit: none
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            limit: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //limit: 2
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            limit: Some(2),
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //limit: 1
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            limit: Some(1),
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 1);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
     db::create_tables::drop_all_tables(&pool).await;
 }

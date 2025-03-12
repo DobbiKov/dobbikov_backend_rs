@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use crate::db::{OrAnd, VecWrapper};
 
 pub struct CreateSectionForm {
@@ -26,6 +28,19 @@ pub struct GetSectionsForm {
     pub title: Option<String>,
     pub position: Option<u32>,
     pub or_and: OrAnd,
+    pub limit: Option<u32>,
+}
+
+impl Default for GetSectionsForm {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            title: Default::default(),
+            position: Default::default(),
+            or_and: Default::default(),
+            limit: None,
+        }
+    }
 }
 
 pub enum GetSectionsError {
@@ -53,12 +68,18 @@ pub async fn get_sections(
     }
 
     let pre_query_str = format!(
-        "SELECT * FROM sections {} {}",
+        "SELECT * FROM sections {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
         conditions.join(match form.or_and {
             OrAnd::And => " AND ",
             OrAnd::Or => " OR ",
-        })
+        }),
+        match form.limit {
+            None => "".to_string(),
+            Some(val) => {
+                format!("LIMIT {}", val)
+            }
+        }
     );
     let query_str = pre_query_str.as_str();
     println!("{}", query_str);
@@ -195,3 +216,16 @@ pub async fn update_sections(
         }
     }
 }
+
+pub enum SwapSectionsError {
+    NotFoundError((Option<u64>, Option<u64>)),
+    UnexpectedError,
+}
+
+//pub async fn swap_sections(
+//    pool: &sqlx::Pool<sqlx::MySql>,
+//    ids: [u64; 2],
+//) -> Result<(), SwapSectionsError> {
+//    //let first = get_section()
+//    Ok(())
+//}
