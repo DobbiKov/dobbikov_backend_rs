@@ -1,6 +1,8 @@
 use crate::db::{
     self,
-    sections::{GetSectionsForm, SectionFromDb, UpdateSectionForm, UpdateSectionsError},
+    sections::{
+        GetSectionsForm, SectionFromDb, SwapSectionsError, UpdateSectionForm, UpdateSectionsError,
+    },
 };
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
@@ -503,6 +505,125 @@ pub async fn limit_test() {
         db::sections::SectionFromDb {
             id: 1,
             title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    db::create_tables::drop_all_tables(&pool).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+pub async fn swap_sections() {
+    let pool: sqlx::Pool<sqlx::MySql>;
+
+    match db::establish_connection_for_testing().await {
+        Ok(conn) => pool = conn,
+        Err(_) => {
+            panic!("an error occured")
+        }
+    };
+    db::create_tables::drop_all_tables(&pool).await;
+    db::create_tables::create_required_tables(&pool).await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "new_title_0".to_string(),
+        },
+    )
+    .await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "title haha".to_string(),
+        },
+    )
+    .await;
+
+    // get sections
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //checking errors
+    let res = db::sections::swap_sections(&pool, [1, 14]).await;
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err(),
+        SwapSectionsError::NotFoundError((None, Some(14)))
+    );
+
+    let res = db::sections::swap_sections(&pool, [14, 1]).await;
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err(),
+        SwapSectionsError::NotFoundError((Some(14), None))
+    );
+
+    let res = db::sections::swap_sections(&pool, [14, 15]).await;
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err(),
+        SwapSectionsError::NotFoundError((Some(14), Some(15)))
+    );
+
+    //verify the sections' positions are really swapped
+    let res = db::sections::swap_sections(&pool, [1, 2]).await;
+    assert!(res.is_ok());
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 1
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
             position: 0
         }
     );

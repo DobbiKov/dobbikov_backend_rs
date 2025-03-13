@@ -6,7 +6,7 @@ pub struct CreateSectionForm {
     pub title: String,
 }
 
-#[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
+#[derive(sqlx::FromRow, Debug, PartialEq, Eq, Default)]
 pub struct SectionFromDb {
     pub id: u32,
     pub title: String,
@@ -248,24 +248,79 @@ pub async fn get_section(
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum SwapSectionsError {
-    NotFoundError((Option<u64>, Option<u64>)),
+    NotFoundError((Option<u32>, Option<u32>)),
     UnexpectedError,
 }
 
-//pub async fn swap_sections(
-//    pool: &sqlx::Pool<sqlx::MySql>,
-//    ids: [u32; 2],
-//) -> Result<(), SwapSectionsError> {
-//    let section_1 = get_sectio
-//    let pre_query_str = format!(
-//        "UPDATE sections SET {} {} {}",
-//        update_columns.join(", "),
-//        if conditions.is_empty() { "" } else { "WHERE" },
-//        conditions.join(match identified_by.or_and {
-//            OrAnd::And => " AND ",
-//            OrAnd::Or => " OR ",
-//        })
-//    );
-//    Ok(())
-//}
+pub async fn swap_sections(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    ids: [u32; 2],
+) -> Result<(), SwapSectionsError> {
+    let section_1 = get_section(
+        pool,
+        GetSectionsForm {
+            id: Some(ids[0]),
+            ..Default::default()
+        },
+    )
+    .await;
+    let section_2 = get_section(
+        pool,
+        GetSectionsForm {
+            id: Some(ids[1]),
+            ..Default::default()
+        },
+    )
+    .await;
+    let mut ret_err_nf = (None, None);
+    if section_1.is_err() {
+        ret_err_nf = (Some(ids[0]), ret_err_nf.1);
+    }
+    if section_2.is_err() {
+        ret_err_nf = (ret_err_nf.0, Some(ids[1]));
+    }
+    if ret_err_nf.0.is_some() || ret_err_nf.1.is_some() {
+        return Err(SwapSectionsError::NotFoundError(ret_err_nf));
+    }
+
+    let max_pos = get_max_position(pool).await.unwrap_or_default() + 1;
+    let section_1 = section_1.unwrap_or_default();
+    let section_2 = section_2.unwrap_or_default();
+    let (sec_1_id, sec_1_pos) = (section_1.id, section_1.position);
+    let (sec_2_id, sec_2_pos) = (section_2.id, section_2.position);
+
+    let pre_query_str = "\
+    UPDATE sections \
+    SET position = ? WHERE id =  ?\
+        "
+    .to_string();
+    let query = sqlx::query(&pre_query_str)
+        .bind(max_pos)
+        .bind(sec_1_id)
+        .execute(pool)
+        .await;
+    if query.is_err() {
+        return Err(SwapSectionsError::UnexpectedError);
+    }
+    let query = sqlx::query(&pre_query_str)
+        .bind(sec_1_pos)
+        .bind(sec_2_id)
+        .execute(pool)
+        .await;
+    if query.is_err() {
+        return Err(SwapSectionsError::UnexpectedError);
+    }
+    let query = sqlx::query(&pre_query_str)
+        .bind(sec_2_pos)
+        .bind(sec_1_id)
+        .execute(pool)
+        .await;
+    query
+        .map_err(|err| {
+            println!("{:?}", err);
+            SwapSectionsError::UnexpectedError
+        })
+        .map(|_| ())
+}
