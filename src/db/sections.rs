@@ -217,6 +217,37 @@ pub async fn update_sections(
     }
 }
 
+pub enum GetSectionError {
+    UnexpectedError,
+    NotFoundError,
+}
+
+pub async fn get_section(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    form: GetSectionsForm,
+) -> Result<SectionFromDb, GetSectionError> {
+    let sec = get_sections(
+        pool,
+        GetSectionsForm {
+            limit: Some(1),
+            ..form
+        },
+    )
+    .await;
+    match sec {
+        Ok(mut val) => {
+            if val.is_empty() {
+                Err(GetSectionError::NotFoundError)
+            } else {
+                Ok(val.swap_remove(0))
+            }
+        }
+        Err(err) => match err {
+            GetSectionsError::UnexpectedError => Err(GetSectionError::UnexpectedError),
+        },
+    }
+}
+
 pub enum SwapSectionsError {
     NotFoundError((Option<u64>, Option<u64>)),
     UnexpectedError,
@@ -224,8 +255,17 @@ pub enum SwapSectionsError {
 
 //pub async fn swap_sections(
 //    pool: &sqlx::Pool<sqlx::MySql>,
-//    ids: [u64; 2],
+//    ids: [u32; 2],
 //) -> Result<(), SwapSectionsError> {
-//    //let first = get_section()
+//    let section_1 = get_sectio
+//    let pre_query_str = format!(
+//        "UPDATE sections SET {} {} {}",
+//        update_columns.join(", "),
+//        if conditions.is_empty() { "" } else { "WHERE" },
+//        conditions.join(match identified_by.or_and {
+//            OrAnd::And => " AND ",
+//            OrAnd::Or => " OR ",
+//        })
+//    );
 //    Ok(())
 //}
