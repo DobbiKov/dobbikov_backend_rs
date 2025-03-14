@@ -23,13 +23,14 @@ async fn create_sections_table(pool: &sqlx::Pool<sqlx::MySql>) {
 
 async fn create_subsections_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_str = "\
-        CREATE TABLE IF NOT EXISTS subsections (\
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
-            title VARCHAR(255) NOT NULL,\
-            position INT UNSIGNED UNIQUE,\
-            section_id INT UNSIGNED NOT NULL,\
-            FOREIGN KEY (section_id) REFERENCES sections(id)\
-        );\
+                     CREATE TABLE IF NOT EXISTS subsections ( \
+                         id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, \
+                         title VARCHAR(255) NOT NULL, \
+                         position INT UNSIGNED NOT NULL, \
+                         section_id INT UNSIGNED NOT NULL, \
+                         FOREIGN KEY (section_id) REFERENCES sections(id), \
+                         UNIQUE (position, section_id) \
+                     ); \
         ";
     let _ = sqlx::query(query_str).execute(pool).await;
 }
