@@ -44,6 +44,39 @@ pub struct GetNotesForm {
     pub limit: Option<u32>,
 }
 
+impl GetNotesForm {
+    fn to_conditions_params(&self) -> (Vec<String>, Vec<VecWrapper>) {
+        let mut conditions: Vec<String> = Vec::new();
+        let mut params: Vec<VecWrapper> = Vec::new();
+
+        if let Some(id) = self.id {
+            conditions.push("id = ?".to_string());
+            params.push(VecWrapper::Num(id));
+        }
+        if let Some(name) = &self.name {
+            conditions.push("name = ?".to_string());
+            params.push(VecWrapper::String(name.clone()));
+        }
+        if let Some(url) = &self.url {
+            conditions.push("url = ?".to_string());
+            params.push(VecWrapper::String(url.clone()));
+        }
+        if let Some(position) = self.position {
+            conditions.push("position = ?".to_string());
+            params.push(VecWrapper::Num(position));
+        }
+        if let Some(section_id) = self.section_id {
+            conditions.push("section_id = ?".to_string());
+            params.push(VecWrapper::Num(section_id));
+        }
+        if let Some(subsection_id) = self.subsection_id {
+            conditions.push("subsection_id = ?".to_string());
+            params.push(VecWrapper::Num(subsection_id));
+        }
+        (conditions, params)
+    }
+}
+
 impl Default for GetNotesForm {
     fn default() -> Self {
         Self {
@@ -70,34 +103,7 @@ pub async fn get_notes(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetNotesForm,
 ) -> Result<Vec<NoteFromDb>, GetNotesError> {
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
-
-    if let Some(id) = form.id {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(id));
-    }
-    if let Some(name) = form.name {
-        conditions.push("name = ?".to_string());
-        params.push(VecWrapper::String(name));
-    }
-    if let Some(url) = form.url {
-        conditions.push("url = ?".to_string());
-        params.push(VecWrapper::String(url));
-    }
-    if let Some(position) = form.position {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(position));
-    }
-    if let Some(section_id) = form.section_id {
-        conditions.push("section_id = ?".to_string());
-        params.push(VecWrapper::Num(section_id));
-    }
-    if let Some(subsection_id) = form.subsection_id {
-        conditions.push("subsection_id = ?".to_string());
-        params.push(VecWrapper::Num(subsection_id));
-    }
-
+    let (conditions, params) = form.to_conditions_params();
     let pre_query_str = format!(
         "SELECT * FROM notes {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
@@ -241,8 +247,6 @@ pub async fn update_notes(
 
     let mut update_columns: Vec<String> = Vec::new();
     let mut update_params: Vec<VecWrapper> = Vec::new();
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
 
     if let Some(name) = note_form.name {
         update_columns.push("name = ?".to_string());
@@ -265,30 +269,7 @@ pub async fn update_notes(
         update_params.push(VecWrapper::Num(position));
     }
 
-    if let Some(id) = identified_by.id {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(id));
-    }
-    if let Some(name) = identified_by.name {
-        conditions.push("name = ?".to_string());
-        params.push(VecWrapper::String(name));
-    }
-    if let Some(url) = identified_by.url {
-        conditions.push("url = ?".to_string());
-        params.push(VecWrapper::String(url));
-    }
-    if let Some(position) = identified_by.position {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(position));
-    }
-    if let Some(section_id) = identified_by.section_id {
-        conditions.push("section_id = ?".to_string());
-        params.push(VecWrapper::Num(section_id));
-    }
-    if let Some(subsection_id) = identified_by.subsection_id {
-        conditions.push("subsection_id = ?".to_string());
-        params.push(VecWrapper::Num(subsection_id));
-    }
+    let (conditions, params) = identified_by.to_conditions_params();
 
     let pre_query_str = format!(
         "UPDATE notes SET {} {} {}",
@@ -426,33 +407,7 @@ pub async fn delete_notes(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetNotesForm,
 ) -> Result<(), DeleteNotesError> {
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
-
-    if let Some(id) = form.id {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(id));
-    }
-    if let Some(name) = form.name {
-        conditions.push("name = ?".to_string());
-        params.push(VecWrapper::String(name));
-    }
-    if let Some(url) = form.url {
-        conditions.push("url = ?".to_string());
-        params.push(VecWrapper::String(url));
-    }
-    if let Some(position) = form.position {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(position));
-    }
-    if let Some(section_id) = form.section_id {
-        conditions.push("section_id = ?".to_string());
-        params.push(VecWrapper::Num(section_id));
-    }
-    if let Some(subsection_id) = form.subsection_id {
-        conditions.push("subsection_id = ?".to_string());
-        params.push(VecWrapper::Num(subsection_id));
-    }
+    let (conditions, params) = form.to_conditions_params();
 
     let pre_query_str = format!(
         "DELETE FROM notes {} {} {}",
