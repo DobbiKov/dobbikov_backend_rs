@@ -629,3 +629,363 @@ pub async fn swap_sections() {
     );
     db::create_tables::drop_all_tables(&pool).await;
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+pub async fn delete_all_sections_test() {
+    let pool: sqlx::Pool<sqlx::MySql>;
+
+    match db::establish_connection_for_testing().await {
+        Ok(conn) => pool = conn,
+        Err(_) => {
+            panic!("an error occured")
+        }
+    };
+    db::create_tables::drop_all_tables(&pool).await;
+    db::create_tables::create_required_tables(&pool).await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "new_title_0".to_string(),
+        },
+    )
+    .await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "title haha".to_string(),
+        },
+    )
+    .await;
+
+    // get sections
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //deleting
+    let res = db::sections::delete_sections(&pool, Default::default()).await;
+    assert!(res.is_ok());
+
+    // get sections (shouldn't be any section)
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 0);
+    db::create_tables::drop_all_tables(&pool).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+pub async fn delete_one_sections_test() {
+    let pool: sqlx::Pool<sqlx::MySql>;
+
+    match db::establish_connection_for_testing().await {
+        Ok(conn) => pool = conn,
+        Err(_) => {
+            panic!("an error occured")
+        }
+    };
+    db::create_tables::drop_all_tables(&pool).await;
+    db::create_tables::create_required_tables(&pool).await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "new_title_0".to_string(),
+        },
+    )
+    .await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "title haha".to_string(),
+        },
+    )
+    .await;
+
+    // get sections
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //deleting
+    let res = db::sections::delete_sections(
+        &pool,
+        GetSectionsForm {
+            limit: Some(1),
+            ..Default::default()
+        },
+    )
+    .await;
+    assert!(res.is_ok());
+
+    // get sections (shouldn't be any section)
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 1);
+    db::create_tables::drop_all_tables(&pool).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+pub async fn delete_concrete_sections_test() {
+    let pool: sqlx::Pool<sqlx::MySql>;
+
+    match db::establish_connection_for_testing().await {
+        Ok(conn) => pool = conn,
+        Err(_) => {
+            panic!("an error occured")
+        }
+    };
+    db::create_tables::drop_all_tables(&pool).await;
+    db::create_tables::create_required_tables(&pool).await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "new_title_0".to_string(),
+        },
+    )
+    .await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "title haha".to_string(),
+        },
+    )
+    .await;
+
+    // get sections
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //deleting
+    let res = db::sections::delete_sections(
+        &pool,
+        GetSectionsForm {
+            id: Some(1),
+            ..Default::default()
+        },
+    )
+    .await;
+    assert!(res.is_ok());
+
+    // get sections (shouldn't be any section)
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 1);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+    db::create_tables::drop_all_tables(&pool).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+pub async fn delete_one_section_test() {
+    let pool: sqlx::Pool<sqlx::MySql>;
+
+    match db::establish_connection_for_testing().await {
+        Ok(conn) => pool = conn,
+        Err(_) => {
+            panic!("an error occured")
+        }
+    };
+    db::create_tables::drop_all_tables(&pool).await;
+    db::create_tables::create_required_tables(&pool).await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "new_title_0".to_string(),
+        },
+    )
+    .await;
+
+    let _ = db::sections::create_section(
+        &pool,
+        db::sections::CreateSectionForm {
+            title: "title haha".to_string(),
+        },
+    )
+    .await;
+
+    // get sections
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 2);
+    assert_eq!(
+        sections_vec[0],
+        db::sections::SectionFromDb {
+            id: 1,
+            title: "new_title_0".to_string(),
+            position: 0
+        }
+    );
+    assert_eq!(
+        sections_vec[1],
+        db::sections::SectionFromDb {
+            id: 2,
+            title: "title haha".to_string(),
+            position: 1
+        }
+    );
+
+    //deleting
+    let res = db::sections::delete_section(
+        &pool,
+        GetSectionsForm {
+            ..Default::default()
+        },
+    )
+    .await;
+    assert!(res.is_ok());
+
+    // get sections (shouldn't be any section)
+    let sections = db::sections::get_sections(
+        &pool,
+        db::sections::GetSectionsForm {
+            id: None,
+            title: None,
+            position: None,
+            ..Default::default()
+        },
+    )
+    .await;
+
+    assert!(sections.is_ok());
+    let sections_vec = sections.unwrap_or_default();
+    assert_eq!(sections_vec.len(), 1);
+    db::create_tables::drop_all_tables(&pool).await;
+}

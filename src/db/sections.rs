@@ -350,7 +350,7 @@ pub async fn delete_sections(
     }
 
     let pre_query_str = format!(
-        "DELETE FROM subsections {} {} {}",
+        "DELETE FROM sections {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
         conditions.join(match form.or_and {
             OrAnd::And => " AND ",
@@ -379,4 +379,15 @@ pub async fn delete_sections(
     let res = query.execute(pool).await;
     res.map_err(|_| DeleteSectionsError::UnexpectedError)
         .map(|_| ())
+}
+
+pub async fn delete_section(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    form: GetSectionsForm,
+) -> Result<(), DeleteSectionsError> {
+    let new_form = GetSectionsForm {
+        limit: Some(1),
+        ..form
+    };
+    delete_sections(pool, new_form).await
 }
