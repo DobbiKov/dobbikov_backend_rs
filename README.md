@@ -34,9 +34,10 @@ The tests are divided into feature-tests and db tests. Run `make test` in order 
 
 ## TODO:
 
-- [ ] sections swapping 
-- [ ] subsections implementation
-- [ ] notes implementation
+- [x] sections swapping 
+- [x] subsections implementation
+- [x] notes implementation
+- [ ] tests for notes
 
 - [ ] service implementation
 - [ ] API implementation
