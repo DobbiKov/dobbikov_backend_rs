@@ -2,6 +2,8 @@ use std::fmt::format;
 
 use crate::db::{OrAnd, VecWrapper};
 
+use super::sections::GetSectionsForm;
+
 pub struct CreateSubsectionForm {
     pub title: String,
     pub section_id: u32,
@@ -350,4 +352,76 @@ pub async fn swap_subsections(
             SwapSubsectionsError::UnexpectedError
         })
         .map(|_| ())
+}
+
+// deleting
+pub enum DeleteSubsectionsError {
+    UnexpectedError,
+}
+
+pub async fn delete_subsections(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    form: GetSubsectionsForm,
+) -> Result<(), DeleteSubsectionsError> {
+    let mut conditions: Vec<String> = Vec::new();
+    let mut params: Vec<VecWrapper> = Vec::new();
+
+    if let Some(id) = form.id {
+        conditions.push("id = ?".to_string());
+        params.push(VecWrapper::Num(id));
+    }
+    if let Some(title) = form.title {
+        conditions.push("title = ?".to_string());
+        params.push(VecWrapper::String(title));
+    }
+    if let Some(position) = form.position {
+        conditions.push("position = ?".to_string());
+        params.push(VecWrapper::Num(position));
+    }
+    if let Some(section_id) = form.section_id {
+        conditions.push("section_id = ?".to_string());
+        params.push(VecWrapper::Num(section_id));
+    }
+
+    let pre_query_str = format!(
+        "DELETE FROM subsections {} {} {}",
+        if !conditions.is_empty() { "WHERE" } else { "" },
+        conditions.join(match form.or_and {
+            OrAnd::And => " AND ",
+            OrAnd::Or => " OR ",
+        }),
+        match form.limit {
+            None => "".to_string(),
+            Some(val) => {
+                format!("LIMIT {}", val)
+            }
+        }
+    );
+
+    let query_str = pre_query_str.as_str();
+    println!("{}", query_str);
+    let mut query = sqlx::query(query_str);
+
+    for param in params {
+        query = match param {
+            VecWrapper::String(val) => query.bind(val),
+            VecWrapper::Num(val) => query.bind(val),
+            VecWrapper::Bool(val) => query.bind(val),
+        };
+    }
+
+    let res = query.execute(pool).await;
+    res.map_err(|_| DeleteSectionsError::UnexpectedError)
+        .map(|_| ())
+}
+
+pub async fn delete_subsection(
+    pool: &sqlx::Pool<sqlx::MySql>,
+    form: GetSubsectionsForm,
+) -> Result<(), DeleteSubsectionsError> {
+    let new_form = GetSubsectionsForm {
+        limit: Some(1),
+        ..form
+    };
+    delete_subsections(pool, new_form).await
 }
