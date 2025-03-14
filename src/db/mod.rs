@@ -36,7 +36,7 @@ enum VecWrapper {
     Bool(bool),
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub enum OrAnd {
     Or,
     #[default]

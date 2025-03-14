@@ -1,8 +1,4 @@
-use std::fmt::format;
-
 use crate::db::{OrAnd, VecWrapper};
-
-use super::sections::GetSectionsForm;
 
 pub struct CreateSubsectionForm {
     pub title: String,
@@ -29,7 +25,7 @@ pub async fn get_max_subsection_position_in_section(
     max.unwrap_or(None)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GetSubsectionsForm {
     pub id: Option<u32>,
     pub title: Option<String>,
@@ -52,6 +48,7 @@ impl Default for GetSubsectionsForm {
     }
 }
 
+#[derive(Debug)]
 pub enum GetSubsectionsError {
     UnexpectedError,
 }
@@ -411,7 +408,7 @@ pub async fn delete_subsections(
     }
 
     let res = query.execute(pool).await;
-    res.map_err(|_| DeleteSectionsError::UnexpectedError)
+    res.map_err(|_| DeleteSubsectionsError::UnexpectedError)
         .map(|_| ())
 }
 
