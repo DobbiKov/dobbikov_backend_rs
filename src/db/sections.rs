@@ -31,6 +31,27 @@ pub struct GetSectionsForm {
     pub limit: Option<u32>,
 }
 
+impl GetSectionsForm {
+    fn to_conditions_params(&self) -> (Vec<String>, Vec<VecWrapper>) {
+        let mut conditions: Vec<String> = Vec::new();
+        let mut params: Vec<VecWrapper> = Vec::new();
+
+        if self.id.is_some() {
+            conditions.push("id = ?".to_string());
+            params.push(VecWrapper::Num(self.id.unwrap()));
+        }
+        if let Some(title) = &self.title {
+            conditions.push("title = ?".to_string());
+            params.push(VecWrapper::String(title.clone()));
+        }
+        if self.position.is_some() {
+            conditions.push("position = ?".to_string());
+            params.push(VecWrapper::Num(self.position.unwrap()));
+        }
+        (conditions, params)
+    }
+}
+
 impl Default for GetSectionsForm {
     fn default() -> Self {
         Self {
@@ -51,22 +72,7 @@ pub async fn get_sections(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetSectionsForm,
 ) -> Result<Vec<SectionFromDb>, GetSectionsError> {
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
-
-    if form.id.is_some() {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(form.id.unwrap()));
-    }
-    if form.title.is_some() {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(form.title.unwrap()));
-    }
-    if form.position.is_some() {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(form.position.unwrap()));
-    }
-
+    let (conditions, params) = form.to_conditions_params();
     let pre_query_str = format!(
         "SELECT * FROM sections {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
@@ -165,18 +171,7 @@ pub async fn update_sections(
         update_params.push(VecWrapper::String(section_form.title.unwrap()));
     }
 
-    if identified_by.id.is_some() {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(identified_by.id.unwrap()));
-    }
-    if identified_by.title.is_some() {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(identified_by.title.unwrap()));
-    }
-    if identified_by.position.is_some() {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(identified_by.position.unwrap()));
-    }
+    let (conditions, params) = identified_by.to_conditions_params();
 
     let pre_query_str = format!(
         "UPDATE sections SET {} {} {}",
@@ -333,21 +328,7 @@ pub async fn delete_sections(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetSectionsForm,
 ) -> Result<(), DeleteSectionsError> {
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
-
-    if form.id.is_some() {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(form.id.unwrap()));
-    }
-    if form.title.is_some() {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(form.title.unwrap()));
-    }
-    if form.position.is_some() {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(form.position.unwrap()));
-    }
+    let (conditions, params) = form.to_conditions_params();
 
     let pre_query_str = format!(
         "DELETE FROM sections {} {} {}",

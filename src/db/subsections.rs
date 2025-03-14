@@ -35,6 +35,31 @@ pub struct GetSubsectionsForm {
     pub limit: Option<u32>,
 }
 
+impl GetSubsectionsForm {
+    fn to_conditions_params(&self) -> (Vec<String>, Vec<VecWrapper>) {
+        let mut conditions: Vec<String> = Vec::new();
+        let mut params: Vec<VecWrapper> = Vec::new();
+
+        if let Some(id) = self.id {
+            conditions.push("id = ?".to_string());
+            params.push(VecWrapper::Num(id));
+        }
+        if let Some(title) = &self.title {
+            conditions.push("title = ?".to_string());
+            params.push(VecWrapper::String(title.clone()));
+        }
+        if let Some(position) = self.position {
+            conditions.push("position = ?".to_string());
+            params.push(VecWrapper::Num(position));
+        }
+        if let Some(section_id) = self.section_id {
+            conditions.push("section_id = ?".to_string());
+            params.push(VecWrapper::Num(section_id));
+        }
+        (conditions, params)
+    }
+}
+
 impl Default for GetSubsectionsForm {
     fn default() -> Self {
         Self {
@@ -57,26 +82,7 @@ pub async fn get_subsections(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetSubsectionsForm,
 ) -> Result<Vec<SubsectionFromDb>, GetSubsectionsError> {
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
-
-    if let Some(id) = form.id {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(id));
-    }
-    if let Some(title) = form.title {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(title));
-    }
-    if let Some(position) = form.position {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(position));
-    }
-    if let Some(section_id) = form.section_id {
-        conditions.push("section_id = ?".to_string());
-        params.push(VecWrapper::Num(section_id));
-    }
-
+    let (conditions, params) = form.to_conditions_params();
     let pre_query_str = format!(
         "SELECT * FROM subsections {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
@@ -168,8 +174,6 @@ pub async fn update_subsections(
 
     let mut update_columns: Vec<String> = Vec::new();
     let mut update_params: Vec<VecWrapper> = Vec::new();
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
 
     if let Some(title) = subsection_form.title {
         update_columns.push("title = ?".to_string());
@@ -184,22 +188,7 @@ pub async fn update_subsections(
         update_params.push(VecWrapper::Num(position));
     }
 
-    if let Some(id) = identified_by.id {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(id));
-    }
-    if let Some(title) = identified_by.title {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(title));
-    }
-    if let Some(position) = identified_by.position {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(position));
-    }
-    if let Some(section_id) = identified_by.section_id {
-        conditions.push("section_id = ?".to_string());
-        params.push(VecWrapper::Num(section_id));
-    }
+    let (conditions, params) = identified_by.to_conditions_params();
 
     let pre_query_str = format!(
         "UPDATE subsections SET {} {} {}",
@@ -360,26 +349,7 @@ pub async fn delete_subsections(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: GetSubsectionsForm,
 ) -> Result<(), DeleteSubsectionsError> {
-    let mut conditions: Vec<String> = Vec::new();
-    let mut params: Vec<VecWrapper> = Vec::new();
-
-    if let Some(id) = form.id {
-        conditions.push("id = ?".to_string());
-        params.push(VecWrapper::Num(id));
-    }
-    if let Some(title) = form.title {
-        conditions.push("title = ?".to_string());
-        params.push(VecWrapper::String(title));
-    }
-    if let Some(position) = form.position {
-        conditions.push("position = ?".to_string());
-        params.push(VecWrapper::Num(position));
-    }
-    if let Some(section_id) = form.section_id {
-        conditions.push("section_id = ?".to_string());
-        params.push(VecWrapper::Num(section_id));
-    }
-
+    let (conditions, params) = form.to_conditions_params();
     let pre_query_str = format!(
         "DELETE FROM subsections {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
