@@ -41,11 +41,12 @@ async fn create_notes_table(pool: &sqlx::Pool<sqlx::MySql>) {
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
             name TEXT NOT NULL,\
             url TEXT NOT NULL,\
-            position INT UNSIGNED UNIQUE,\
+            position INT UNSIGNED,\
             section_id INT UNSIGNED,\
             subsection_id INT UNSIGNED,\
             FOREIGN KEY (section_id) REFERENCES sections(id),\
-            FOREIGN KEY (subsection_id) REFERENCES subsections(id)\
+            FOREIGN KEY (subsection_id) REFERENCES subsections(id),\
+            UNIQUE (position, subsection_id)\
         );\
         ";
     let _ = sqlx::query(query_str).execute(pool).await;

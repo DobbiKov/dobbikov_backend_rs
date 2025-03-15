@@ -193,6 +193,7 @@ pub async fn create_note(
     )
     .execute(pool)
     .await;
+    println!("{:?}", res);
     match res {
         Ok(_) => Ok(()),
         Err(_) => Err(()),
