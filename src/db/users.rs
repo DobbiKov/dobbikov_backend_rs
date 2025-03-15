@@ -33,6 +33,7 @@ pub async fn create_user(
     }
 }
 
+#[derive(Default)]
 pub struct GetUsersForm {
     pub id: Option<u32>,
     pub username: Option<String>,
