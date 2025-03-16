@@ -1,5 +1,7 @@
 use crate::db::{OrAnd, VecWrapper};
 
+use loggit::{trace, warn};
+
 pub struct CreateSubsectionForm {
     pub title: String,
     pub section_id: u32,
@@ -96,7 +98,7 @@ pub async fn get_subsections(
         }
     );
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query_as::<_, SubsectionFromDb>(query_str);
 
     for param in params {
@@ -223,7 +225,7 @@ pub async fn update_subsections(
     match res {
         Ok(_) => Ok(()),
         Err(e) => {
-            println!("{:?}", e);
+            warn!("{:?}", e);
             Err(UpdateSubsectionsError::UnexpectedError)
         }
     }
@@ -334,7 +336,7 @@ pub async fn swap_subsections(
         .await;
     query
         .map_err(|err| {
-            println!("{:?}", err);
+            warn!("{:?}", err);
             SwapSubsectionsError::UnexpectedError
         })
         .map(|_| ())
@@ -366,7 +368,7 @@ pub async fn delete_subsections(
     );
 
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query(query_str);
 
     for param in params {

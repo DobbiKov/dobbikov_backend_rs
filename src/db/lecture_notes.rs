@@ -1,4 +1,5 @@
 use crate::db::{OrAnd, VecWrapper};
+use loggit::{trace, warn};
 
 /// The form used to create a new note.
 pub struct CreateNoteForm {
@@ -117,7 +118,7 @@ pub async fn get_notes(
         }
     );
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query_as::<_, NoteFromDb>(query_str);
     for param in params {
         query = match param {
@@ -193,7 +194,7 @@ pub async fn create_note(
     )
     .execute(pool)
     .await;
-    println!("{:?}", res);
+    trace!("{:?}", res);
     match res {
         Ok(_) => Ok(()),
         Err(_) => Err(()),
@@ -303,7 +304,7 @@ pub async fn update_notes(
     match res {
         Ok(_) => Ok(()),
         Err(e) => {
-            println!("{:?}", e);
+            warn!("{:?}", e);
             Err(UpdateNotesError::UnexpectedError)
         }
     }
@@ -392,7 +393,7 @@ pub async fn swap_notes(
         .await;
     query
         .map_err(|err| {
-            println!("{:?}", err);
+            warn!("{:?}", err);
             SwapNotesError::UnexpectedError
         })
         .map(|_| ())
@@ -423,7 +424,7 @@ pub async fn delete_notes(
         }
     );
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query(query_str);
     for param in params {
         query = match param {

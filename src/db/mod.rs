@@ -22,6 +22,7 @@ pub async fn establish_connection() -> Result<sqlx::Pool<sqlx::MySql>, sqlx::Err
 
 pub async fn establish_connection_for_testing() -> Result<sqlx::Pool<sqlx::MySql>, sqlx::Error> {
     dotenv().ok();
+    loggit::logger::set_log_level(loggit::Level::TRACE);
 
     let database_url = env::var("TESTING_DATABASE_URL").expect("DATABASE_URL must be set");
     MySqlPoolOptions::new()

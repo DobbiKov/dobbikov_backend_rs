@@ -1,4 +1,5 @@
 use crate::db::VecWrapper;
+use loggit::trace;
 use sqlx::{mysql::MySqlRow, prelude::FromRow, Column, Executor, Row};
 
 use super::OrAnd;
@@ -79,7 +80,7 @@ pub async fn get_users(
         })
     );
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query_as(query_str);
 
     for param in params {

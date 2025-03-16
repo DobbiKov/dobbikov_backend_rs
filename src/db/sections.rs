@@ -1,3 +1,4 @@
+use loggit::{trace, warn};
 use std::fmt::format;
 
 use crate::db::{OrAnd, VecWrapper};
@@ -88,7 +89,7 @@ pub async fn get_sections(
         }
     );
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query_as(query_str);
 
     for param in params {
@@ -201,12 +202,12 @@ pub async fn update_sections(
             VecWrapper::Bool(val) => query.bind(val),
         };
     }
-    //println!("{}", query);
+    //trace!("{}", query);
     let res = query.execute(pool).await;
     match res {
         Ok(_) => Ok(()),
         Err(e) => {
-            println!("{:?}", e);
+            warn!("{:?}", e);
             Err(UpdateSectionsError::UnexpectedError)
         }
     }
@@ -314,7 +315,7 @@ pub async fn swap_sections(
         .await;
     query
         .map_err(|err| {
-            println!("{:?}", err);
+            warn!("{:?}", err);
             SwapSectionsError::UnexpectedError
         })
         .map(|_| ())
@@ -346,7 +347,7 @@ pub async fn delete_sections(
     );
 
     let query_str = pre_query_str.as_str();
-    println!("{}", query_str);
+    trace!("{}", query_str);
     let mut query = sqlx::query(query_str);
 
     for param in params {
