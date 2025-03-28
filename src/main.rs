@@ -13,10 +13,8 @@ mod tests;
 async fn main() {
     let pool: sqlx::Pool<sqlx::MySql>;
     logger::set_colorized(true);
-    logger::set_level_formatting(
-        Level::INFO,
-        "<green>[{level}]<green>: {message}".to_string(),
-    );
+    logger::set_level_formatting(Level::INFO, "<green>[{level}]<green>: {message}");
+    logger::set_file("log.txt");
 
     match db::establish_connection().await {
         Ok(conn) => pool = conn,

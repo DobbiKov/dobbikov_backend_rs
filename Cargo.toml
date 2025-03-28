@@ -9,4 +9,4 @@ axum = {version = "0.8.1"}
 dotenvy = { version="0.15" }
 sqlx = { version="0.8", features=[ "mysql", "runtime-tokio", "tls-native-tls" ] }
 argon2 = "0.5.3"
-loggit = "0.1.0"
+loggit = "0.1.1"
