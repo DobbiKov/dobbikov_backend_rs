@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create User (Admin)</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <span class="badge">Admin Only</span>
+      <h1>Create a new user.</h1>
+      <p>
+        This workspace is restricted to administrators. Create a user account and
+        choose whether it should have admin privileges.
+      </p>
+      <p class="small"><a class="link" href="/admin">Back to admin</a>.</p>
+    </section>
+
+    <section class="card">
+      <h2>New User</h2>
+      <form id="createUserForm" class="form-grid">
+        <div>
+          <label for="apiBase">API Base URL</label>
+          <input id="apiBase" name="apiBase" placeholder="http://127.0.0.1:3000" />
+        </div>
+        <div>
+          <label for="username">Username</label>
+          <input id="username" name="username" required />
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required />
+        </div>
+        <div>
+          <label for="isAdmin">Admin Role</label>
+          <select id="isAdmin" name="isAdmin">
+            <option value="false">Non-admin</option>
+            <option value="true">Admin</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit">Create user</button>
+          <button class="secondary" type="button" id="goAdmin">Back to admin</button>
+        </div>
+        <div id="status" class="alert" hidden></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="/create-user.js"></script>
+</body>
+</html>

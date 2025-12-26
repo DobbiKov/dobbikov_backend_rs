@@ -22,6 +22,7 @@ const statusEl = document.getElementById('status');
 
 const refreshBtn = document.getElementById('refreshBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const createUserBtn = document.getElementById('createUserBtn');
 
 const sectionForm = document.getElementById('sectionForm');
 const subsectionForm = document.getElementById('subsectionForm');
@@ -464,6 +465,9 @@ noteForm.addEventListener('submit', async (event) => {
 });
 
 refreshBtn.addEventListener('click', () => loadAll());
+createUserBtn.addEventListener('click', () => {
+  window.location.href = '/admin/create-user';
+});
 
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('authToken');

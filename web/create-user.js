@@ -1,13 +1,17 @@
 const apiBaseInput = document.getElementById('apiBase');
-const form = document.getElementById('registerForm');
+const form = document.getElementById('createUserForm');
 const statusEl = document.getElementById('status');
-const goLogin = document.getElementById('goLogin');
+const goAdmin = document.getElementById('goAdmin');
 
 const savedBase = localStorage.getItem('apiBase') || 'http://127.0.0.1:3000';
 apiBaseInput.value = savedBase;
 
-goLogin.addEventListener('click', () => {
+if (!localStorage.getItem('authToken')) {
   window.location.href = '/login';
+}
+
+goAdmin.addEventListener('click', () => {
+  window.location.href = '/admin';
 });
 
 form.addEventListener('submit', async (event) => {
@@ -17,6 +21,13 @@ form.addEventListener('submit', async (event) => {
   const apiBase = apiBaseInput.value.trim() || 'http://127.0.0.1:3000';
   localStorage.setItem('apiBase', apiBase);
 
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    statusEl.textContent = 'Missing token. Please log in again.';
+    statusEl.hidden = false;
+    return;
+  }
+
   const payload = {
     username: form.username.value.trim(),
     password: form.password.value,
@@ -24,35 +35,25 @@ form.addEventListener('submit', async (event) => {
   };
 
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     const res = await fetch(`${apiBase}/users/register`, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const message = await res.text();
-      throw new Error(message || 'Registration failed');
+      throw new Error(message || 'User creation failed');
     }
 
-    const data = await res.json();
-    localStorage.setItem('authToken', data.token);
-    localStorage.setItem('authUser', JSON.stringify(data.user));
-    localStorage.setItem('tokenExpiresAt', data.expires_at);
-
-    const hash = new URLSearchParams({
-      token: data.token,
-      apiBase,
-    }).toString();
-    window.location.href = `/admin#${hash}`;
+    form.reset();
+    statusEl.textContent = 'User created.';
+    statusEl.hidden = false;
   } catch (err) {
-    statusEl.textContent = err.message || 'Registration failed. Check your API server.';
+    statusEl.textContent = err.message || 'User creation failed.';
     statusEl.hidden = false;
   }
 });

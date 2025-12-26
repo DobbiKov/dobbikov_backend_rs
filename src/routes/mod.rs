@@ -17,10 +17,13 @@ const STYLES_CSS: &str = include_str!("../../web/styles.css");
 const LOGIN_JS: &str = include_str!("../../web/login.js");
 const REGISTER_JS: &str = include_str!("../../web/register.js");
 const ADMIN_JS: &str = include_str!("../../web/admin.js");
+const CREATE_USER_HTML: &str = include_str!("../../web/create-user.html");
+const CREATE_USER_JS: &str = include_str!("../../web/create-user.js");
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: sqlx::Pool<sqlx::MySql>,
+    pub register_only_for_admin: bool,
 }
 
 #[derive(Serialize)]
@@ -183,6 +186,10 @@ async fn admin_page() -> Html<&'static str> {
     Html(ADMIN_HTML)
 }
 
+async fn create_user_page() -> Html<&'static str> {
+    Html(CREATE_USER_HTML)
+}
+
 async fn styles_css() -> Response {
     (
         [(axum::http::header::CONTENT_TYPE, "text/css")],
@@ -215,6 +222,14 @@ async fn admin_js() -> Response {
         .into_response()
 }
 
+async fn create_user_js() -> Response {
+    (
+        [(axum::http::header::CONTENT_TYPE, "application/javascript")],
+        CREATE_USER_JS,
+    )
+        .into_response()
+}
+
 async fn admin_guard(
     axum::extract::State(state): axum::extract::State<AppState>,
     req: axum::http::Request<axum::body::Body>,
@@ -226,6 +241,25 @@ async fn admin_guard(
         .and_then(|val| val.to_str().ok())
         .and_then(|val| val.strip_prefix("Bearer "))
         .map(|val| val.to_string());
+
+    let token = match token {
+        Some(value) => Some(value),
+        None => headers
+            .get(axum::http::header::COOKIE)
+            .and_then(|val| val.to_str().ok())
+            .and_then(|cookies| {
+                cookies.split(';').find_map(|pair| {
+                    let mut iter = pair.trim().splitn(2, '=');
+                    let key = iter.next()?;
+                    let value = iter.next()?;
+                    if key == "session_token" {
+                        Some(value.to_string())
+                    } else {
+                        None
+                    }
+                })
+            }),
+    };
 
     let token = match token {
         Some(value) => value,
@@ -241,11 +275,12 @@ async fn admin_guard(
 }
 
 pub fn router(state: AppState) -> Router {
-    let public_routes = Router::new()
+    let mut public_routes = Router::new()
         .route("/", get(root_index))
         .route("/login", get(login_page))
         .route("/register", get(register_page))
         .route("/admin", get(admin_page))
+        .route("/create-user.js", get(create_user_js))
         .route("/styles.css", get(styles_css))
         .route("/login.js", get(login_js))
         .route("/register.js", get(register_js))
@@ -256,10 +291,10 @@ pub fn router(state: AppState) -> Router {
         .route("/subsections/{id}", get(subsections::get_subsection))
         .route("/notes", get(lecture_notes::list_notes))
         .route("/notes/{id}", get(lecture_notes::get_note))
-        .route("/users/register", post(users::register))
         .route("/users/login", post(users::login));
 
-    let admin_routes = Router::new()
+    let mut admin_routes = Router::new()
+        .route("/admin/create-user", get(create_user_page))
         .route("/sections", post(sections::create_section))
         .route(
             "/sections/{id}",
@@ -278,11 +313,18 @@ pub fn router(state: AppState) -> Router {
             put(lecture_notes::update_note).delete(lecture_notes::delete_note),
         )
         .route("/notes/move", post(lecture_notes::move_note))
-        .route("/users", get(users::list_users))
-        .route_layer(middleware::from_fn_with_state(
-            state.clone(),
-            admin_guard,
-        ));
+        .route("/users", get(users::list_users));
+
+    if state.register_only_for_admin {
+        admin_routes = admin_routes.route("/users/register", post(users::register));
+    } else {
+        public_routes = public_routes.route("/users/register", post(users::register));
+    }
+
+    admin_routes = admin_routes.route_layer(middleware::from_fn_with_state(
+        state.clone(),
+        admin_guard,
+    ));
 
     Router::new()
         .merge(public_routes)

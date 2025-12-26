@@ -1,6 +1,6 @@
 use axum::extract::{Query, State};
-use axum::http::StatusCode;
-use axum::response::Response;
+use axum::http::{header, StatusCode};
+use axum::response::{IntoResponse, Response};
 use axum::Json;
 use serde::Deserialize;
 
@@ -31,7 +31,7 @@ pub struct UsersQuery {
 pub async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
-) -> Result<(StatusCode, Json<services::users::AuthResponse>), Response> {
+) -> Result<Response, Response> {
     let auth = services::users::register(
         &state.pool,
         services::users::RegisterForm {
@@ -42,13 +42,18 @@ pub async fn register(
     )
     .await
     .map_err(|_| error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to register user"))?;
-    Ok((StatusCode::CREATED, Json(auth)))
+    Ok((
+        StatusCode::CREATED,
+        [(header::SET_COOKIE, format!("session_token={}; Path=/; SameSite=Lax", auth.token))],
+        Json(auth),
+    )
+        .into_response())
 }
 
 pub async fn login(
     State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
-) -> Result<Json<services::users::AuthResponse>, Response> {
+) -> Result<Response, Response> {
     let auth = services::users::login(
         &state.pool,
         services::users::LoginForm {
@@ -68,7 +73,12 @@ pub async fn login(
             error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to login")
         }
     })?;
-    Ok(Json(auth))
+    Ok((
+        StatusCode::OK,
+        [(header::SET_COOKIE, format!("session_token={}; Path=/; SameSite=Lax", auth.token))],
+        Json(auth),
+    )
+        .into_response())
 }
 
 pub async fn list_users(

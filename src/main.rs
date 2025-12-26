@@ -47,7 +47,15 @@ async fn main() {
         ])
         .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]);
 
-    let app = routes::router(routes::AppState { pool }).layer(cors);
+    let register_only_for_admin = std::env::var("REGISTER_ONLY_FOR_ADMIN")
+        .unwrap_or_else(|_| "false".to_string())
+        .eq_ignore_ascii_case("true");
+
+    let app = routes::router(routes::AppState {
+        pool,
+        register_only_for_admin,
+    })
+    .layer(cors);
     info!("Starting server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr)
         .await
