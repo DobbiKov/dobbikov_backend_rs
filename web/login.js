@@ -7,7 +7,7 @@ const savedBase = localStorage.getItem('apiBase') || 'http://127.0.0.1:3000';
 apiBaseInput.value = savedBase;
 
 goRegister.addEventListener('click', () => {
-  window.location.href = 'register.html';
+  window.location.href = '/register';
 });
 
 form.addEventListener('submit', async (event) => {
@@ -43,7 +43,7 @@ form.addEventListener('submit', async (event) => {
       token: data.token,
       apiBase,
     }).toString();
-    window.location.href = `admin.html#${hash}`;
+    window.location.href = `/admin#${hash}`;
   } catch (err) {
     statusEl.textContent = err.message || 'Login failed. Check your API server.';
     statusEl.hidden = false;

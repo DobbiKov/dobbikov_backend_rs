@@ -1,7 +1,7 @@
 use axum::middleware;
 use axum::http::StatusCode;
 use axum::routing::{get, options, post, put};
-use axum::{response::Response, Router};
+use axum::{response::Html, response::IntoResponse, response::Response, Router};
 use serde::Serialize;
 
 pub mod lecture_notes;
@@ -9,6 +9,14 @@ pub mod responses;
 pub mod sections;
 pub mod subsections;
 pub mod users;
+
+const LOGIN_HTML: &str = include_str!("../../web/login.html");
+const REGISTER_HTML: &str = include_str!("../../web/register.html");
+const ADMIN_HTML: &str = include_str!("../../web/admin.html");
+const STYLES_CSS: &str = include_str!("../../web/styles.css");
+const LOGIN_JS: &str = include_str!("../../web/login.js");
+const REGISTER_JS: &str = include_str!("../../web/register.js");
+const ADMIN_JS: &str = include_str!("../../web/admin.js");
 
 #[derive(Clone)]
 pub struct AppState {
@@ -163,6 +171,50 @@ async fn root_index(
     }))
 }
 
+async fn login_page() -> Html<&'static str> {
+    Html(LOGIN_HTML)
+}
+
+async fn register_page() -> Html<&'static str> {
+    Html(REGISTER_HTML)
+}
+
+async fn admin_page() -> Html<&'static str> {
+    Html(ADMIN_HTML)
+}
+
+async fn styles_css() -> Response {
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/css")],
+        STYLES_CSS,
+    )
+        .into_response()
+}
+
+async fn login_js() -> Response {
+    (
+        [(axum::http::header::CONTENT_TYPE, "application/javascript")],
+        LOGIN_JS,
+    )
+        .into_response()
+}
+
+async fn register_js() -> Response {
+    (
+        [(axum::http::header::CONTENT_TYPE, "application/javascript")],
+        REGISTER_JS,
+    )
+        .into_response()
+}
+
+async fn admin_js() -> Response {
+    (
+        [(axum::http::header::CONTENT_TYPE, "application/javascript")],
+        ADMIN_JS,
+    )
+        .into_response()
+}
+
 async fn admin_guard(
     axum::extract::State(state): axum::extract::State<AppState>,
     req: axum::http::Request<axum::body::Body>,
@@ -191,6 +243,13 @@ async fn admin_guard(
 pub fn router(state: AppState) -> Router {
     let public_routes = Router::new()
         .route("/", get(root_index))
+        .route("/login", get(login_page))
+        .route("/register", get(register_page))
+        .route("/admin", get(admin_page))
+        .route("/styles.css", get(styles_css))
+        .route("/login.js", get(login_js))
+        .route("/register.js", get(register_js))
+        .route("/admin.js", get(admin_js))
         .route("/sections", get(sections::list_sections))
         .route("/sections/{id}", get(sections::get_section))
         .route("/subsections", get(subsections::list_subsections))

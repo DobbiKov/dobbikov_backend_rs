@@ -39,7 +39,7 @@ const state = {
 };
 
 if (!token) {
-  window.location.href = 'login.html';
+  window.location.href = '/login';
 }
 
 function setStatus(message) {
@@ -469,7 +469,7 @@ logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('authUser');
   localStorage.removeItem('tokenExpiresAt');
-  window.location.href = 'login.html';
+  window.location.href = '/login';
 });
 
 const user = JSON.parse(localStorage.getItem('authUser') || 'null');
