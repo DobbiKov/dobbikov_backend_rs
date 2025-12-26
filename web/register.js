@@ -40,7 +40,11 @@ form.addEventListener('submit', async (event) => {
     localStorage.setItem('authUser', JSON.stringify(data.user));
     localStorage.setItem('tokenExpiresAt', data.expires_at);
 
-    window.location.href = 'admin.html';
+    const hash = new URLSearchParams({
+      token: data.token,
+      apiBase,
+    }).toString();
+    window.location.href = `admin.html#${hash}`;
   } catch (err) {
     statusEl.textContent = err.message || 'Registration failed. Check your API server.';
     statusEl.hidden = false;

@@ -1,6 +1,7 @@
 use axum::middleware;
-use axum::routing::{get, post, put};
-use axum::{http::StatusCode, response::Response, Router};
+use axum::http::StatusCode;
+use axum::routing::{get, options, post, put};
+use axum::{response::Response, Router};
 
 pub mod lecture_notes;
 pub mod responses;
@@ -77,5 +78,6 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .merge(public_routes)
         .merge(admin_routes)
+        .route("/*path", options(|| async { StatusCode::NO_CONTENT }))
         .with_state(state)
 }

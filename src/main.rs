@@ -1,6 +1,9 @@
 use loggit::{info, logger, Level};
 use pass_hashing::hash_password;
 use std::net::SocketAddr;
+use axum::http::header;
+use axum::http::Method;
+use tower_http::cors::{Any, CorsLayer};
 
 pub mod db;
 pub mod examples;
@@ -33,7 +36,18 @@ async fn main() {
         .parse()
         .expect("SERVER_ADDR must be a valid socket address");
 
-    let app = routes::router(routes::AppState { pool });
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]);
+
+    let app = routes::router(routes::AppState { pool }).layer(cors);
     info!("Starting server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr)
         .await

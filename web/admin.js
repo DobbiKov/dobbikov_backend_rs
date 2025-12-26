@@ -1,3 +1,19 @@
+const hashParams = window.location.hash.startsWith('#')
+  ? new URLSearchParams(window.location.hash.slice(1))
+  : null;
+
+if (hashParams) {
+  const hashToken = hashParams.get('token');
+  const hashApiBase = hashParams.get('apiBase');
+  if (hashToken) {
+    localStorage.setItem('authToken', hashToken);
+  }
+  if (hashApiBase) {
+    localStorage.setItem('apiBase', hashApiBase);
+  }
+  window.location.hash = '';
+}
+
 const apiBase = localStorage.getItem('apiBase') || 'http://127.0.0.1:3000';
 const token = localStorage.getItem('authToken');
 const userMeta = document.getElementById('userMeta');
