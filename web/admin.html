@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lecture Notes Admin Console</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <header class="admin-header">
+      <div>
+        <h1>Lecture Notes Control Room</h1>
+        <div class="small" id="userMeta"></div>
+      </div>
+      <div class="meta">
+        <span class="tag" id="apiMeta"></span>
+        <button class="secondary" id="refreshBtn">Refresh</button>
+        <button class="ghost" id="logoutBtn">Log out</button>
+      </div>
+    </header>
+
+    <section class="panel-grid">
+      <div class="stack">
+        <div class="card">
+          <h2>Create Section</h2>
+          <form id="sectionForm" class="form-grid">
+            <div>
+              <label for="sectionTitle">Title</label>
+              <input id="sectionTitle" name="sectionTitle" required />
+            </div>
+            <button type="submit">Add section</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Create Subsection</h2>
+          <form id="subsectionForm" class="form-grid">
+            <div>
+              <label for="subsectionTitle">Title</label>
+              <input id="subsectionTitle" name="subsectionTitle" required />
+            </div>
+            <div>
+              <label for="subsectionSection">Section</label>
+              <select id="subsectionSection" name="subsectionSection"></select>
+            </div>
+            <button type="submit">Add subsection</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Create Note</h2>
+          <form id="noteForm" class="form-grid">
+            <div>
+              <label for="noteName">Name</label>
+              <input id="noteName" name="noteName" required />
+            </div>
+            <div>
+              <label for="noteUrl">URL</label>
+              <input id="noteUrl" name="noteUrl" required />
+            </div>
+            <div>
+              <label for="noteParent">Attach to</label>
+              <select id="noteParent" name="noteParent">
+                <option value="section">Section</option>
+                <option value="subsection">Subsection</option>
+              </select>
+            </div>
+            <div>
+              <label for="noteParentSelect">Parent</label>
+              <select id="noteParentSelect" name="noteParentSelect"></select>
+            </div>
+            <button type="submit">Add note</button>
+          </form>
+        </div>
+
+        <div class="alert" id="status" hidden></div>
+        <p class="notice">
+          Moves swap positions with the item directly above or below. Create or edit
+          content using the controls here.
+        </p>
+      </div>
+
+      <div class="stack">
+        <div class="section-card">
+          <div class="split">
+            <h2>Sections</h2>
+            <span class="tag">Drag the narrative</span>
+          </div>
+          <div id="sectionsList" class="list"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

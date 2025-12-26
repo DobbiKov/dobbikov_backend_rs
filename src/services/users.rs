@@ -226,7 +226,7 @@ pub async fn authenticate_admin_by_token(
         return Err(AdminAuthError::NotAdmin);
     }
 
-    Ok(user)
+    Ok(UserReturn::from(user))
 }
 
 #[derive(Debug)]

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lecture Notes Admin Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <span class="badge">Lecture Notes</span>
+      <h1>Welcome back, Curator.</h1>
+      <p>
+        This is your backstage pass. Log in to orchestrate sections, subsections,
+        and notes with precision.
+      </p>
+      <p class="small">Need an account? <a class="link" href="register.html">Register here</a>.</p>
+    </section>
+
+    <section class="card">
+      <h2>Admin Login</h2>
+      <p class="small">Your token lasts 7 days. Use it to manage content.</p>
+      <form id="loginForm" class="form-grid">
+        <div>
+          <label for="apiBase">API Base URL</label>
+          <input id="apiBase" name="apiBase" placeholder="http://127.0.0.1:3000" />
+        </div>
+        <div>
+          <label for="username">Username</label>
+          <input id="username" name="username" required />
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required />
+        </div>
+        <div class="actions">
+          <button type="submit">Log in</button>
+          <button class="secondary" type="button" id="goRegister">Create account</button>
+        </div>
+        <div id="status" class="alert" hidden></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="login.js"></script>
+</body>
+</html>

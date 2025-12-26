@@ -18,14 +18,12 @@ pub async fn create_session(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: CreateSessionForm,
 ) -> Result<(), ()> {
-    let res = sqlx::query!(
-        "INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)",
-        form.user_id,
-        form.token,
-        form.expires_at,
-    )
-    .execute(pool)
-    .await;
+    let res = sqlx::query("INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)")
+        .bind(form.user_id)
+        .bind(form.token)
+        .bind(form.expires_at)
+        .execute(pool)
+        .await;
     res.map_err(|_| ()).map(|_| ())
 }
 
@@ -46,7 +44,8 @@ pub async fn delete_session_by_token(
     pool: &sqlx::Pool<sqlx::MySql>,
     token: String,
 ) -> Result<(), ()> {
-    let res = sqlx::query!("DELETE FROM sessions WHERE token = ? LIMIT 1", token)
+    let res = sqlx::query("DELETE FROM sessions WHERE token = ? LIMIT 1")
+        .bind(token)
         .execute(pool)
         .await;
     res.map_err(|_| ()).map(|_| ())
@@ -56,7 +55,8 @@ pub async fn delete_sessions_by_user(
     pool: &sqlx::Pool<sqlx::MySql>,
     user_id: u32,
 ) -> Result<(), ()> {
-    let res = sqlx::query!("DELETE FROM sessions WHERE user_id = ?", user_id)
+    let res = sqlx::query("DELETE FROM sessions WHERE user_id = ?")
+        .bind(user_id)
         .execute(pool)
         .await;
     res.map_err(|_| ()).map(|_| ())

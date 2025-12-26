@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register Admin Account</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <span class="badge">Lecture Notes</span>
+      <h1>Claim the desk.</h1>
+      <p>
+        Create an account and choose whether it should carry admin power. Only
+        admins can shape the knowledge map.
+      </p>
+      <p class="small">Already registered? <a class="link" href="login.html">Sign in</a>.</p>
+    </section>
+
+    <section class="card">
+      <h2>Register</h2>
+      <p class="small">Admins can edit everything. Non-admins can only browse.</p>
+      <form id="registerForm" class="form-grid">
+        <div>
+          <label for="apiBase">API Base URL</label>
+          <input id="apiBase" name="apiBase" placeholder="http://127.0.0.1:3000" />
+        </div>
+        <div>
+          <label for="username">Username</label>
+          <input id="username" name="username" required />
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required />
+        </div>
+        <div>
+          <label for="isAdmin">Admin Role</label>
+          <select id="isAdmin" name="isAdmin">
+            <option value="false">Non-admin</option>
+            <option value="true">Admin</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit">Create account</button>
+          <button class="secondary" type="button" id="goLogin">Back to login</button>
+        </div>
+        <div id="status" class="alert" hidden></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="register.js"></script>
+</body>
+</html>
