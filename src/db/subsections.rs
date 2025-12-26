@@ -145,7 +145,7 @@ pub struct UpdateSubsectionForm {
 
 impl UpdateSubsectionForm {
     pub fn is_all_none(&self) -> bool {
-        self.title.is_none() && self.section_id.is_none()
+        self.title.is_none() && self.section_id.is_none() && self.position.is_none()
     }
 }
 

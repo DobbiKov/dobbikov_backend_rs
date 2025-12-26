@@ -1,4 +1,4 @@
-mod lecture_notes;
-mod sections;
-mod subsections;
-mod users;
+pub mod lecture_notes;
+pub mod sections;
+pub mod subsections;
+pub mod users;
