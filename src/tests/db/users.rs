@@ -32,6 +32,7 @@ pub async fn get_users_test() {
         db::users::CreateUserForm {
             username: "dobb".to_string(),
             password: "pass1".to_string(),
+            is_admin: false,
         },
     )
     .await;
@@ -55,6 +56,7 @@ pub async fn get_users_test() {
         db::users::CreateUserForm {
             username: "ivgap04".to_string(),
             password: "pass2".to_string(),
+            is_admin: false,
         },
     )
     .await;
@@ -201,6 +203,7 @@ pub async fn get_user_test() {
         db::users::CreateUserForm {
             username: "ivgap04".to_string(),
             password: "pass2".to_string(),
+            is_admin: false,
         },
     )
     .await;

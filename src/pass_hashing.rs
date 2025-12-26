@@ -24,3 +24,7 @@ pub fn hash_password(password: String) -> String {
         .unwrap()
         .to_string()
 }
+
+pub fn verify_password(password: String, hashed: &str) -> bool {
+    hash_password(password) == hashed
+}

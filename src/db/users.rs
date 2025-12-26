@@ -7,6 +7,7 @@ use super::OrAnd;
 pub struct CreateUserForm {
     pub username: String,
     pub password: String,
+    pub is_admin: bool,
 }
 
 #[derive(FromRow, Debug, PartialEq, Eq)]
@@ -22,9 +23,10 @@ pub async fn create_user(
     user_form: CreateUserForm,
 ) -> Result<(), ()> {
     let res = sqlx::query!(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
+        "INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
         user_form.username,
-        user_form.password
+        user_form.password,
+        user_form.is_admin
     )
     .execute(pool)
     .await;

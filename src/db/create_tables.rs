@@ -10,6 +10,19 @@ async fn create_users_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let _ = sqlx::query(query_str).execute(pool).await;
 }
 
+async fn create_sessions_table(pool: &sqlx::Pool<sqlx::MySql>) {
+    let query_str = "\
+        CREATE TABLE IF NOT EXISTS sessions(\
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
+            user_id INT UNSIGNED NOT NULL,\
+            token VARCHAR(128) NOT NULL UNIQUE,\
+            expires_at BIGINT NOT NULL,\
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\
+        );\
+        ";
+    let _ = sqlx::query(query_str).execute(pool).await;
+}
+
 async fn create_sections_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_str = "\
          CREATE TABLE IF NOT EXISTS sections (\
@@ -54,6 +67,7 @@ async fn create_notes_table(pool: &sqlx::Pool<sqlx::MySql>) {
 
 pub async fn create_required_tables(pool: &sqlx::Pool<sqlx::MySql>) {
     create_users_table(pool).await;
+    create_sessions_table(pool).await;
     create_sections_table(pool).await;
     create_subsections_table(pool).await;
     create_notes_table(pool).await;
@@ -63,9 +77,10 @@ pub async fn drop_all_tables(pool: &sqlx::Pool<sqlx::MySql>) {
         "DROP TABLE notes;",
         "DROP TABLE subsections;",
         "DROP TABLE sections;",
+        "DROP TABLE sessions;",
         "DROP TABLE users;",
     ];
-    let table_names = ["notes", "subsections", "sections", "users"];
+    let table_names = ["notes", "subsections", "sections", "sessions", "users"];
     for table_name in table_names {
         let query_str = format!("DROP TABLE IF EXISTS {} ;", table_name);
         let _ = sqlx::query(query_str.as_str()).execute(pool).await;
