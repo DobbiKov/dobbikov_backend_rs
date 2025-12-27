@@ -89,6 +89,7 @@ function buildSelectOptions(select, items, labelFn) {
 function render() {
   sectionsList.innerHTML = '';
   const sections = sortByPosition(state.sections);
+  const sectionTitles = new Map(sections.map((section) => [section.id, section.title]));
   const subsectionsBySection = new Map();
   const notesBySubsection = new Map();
   const notesBySection = new Map();
@@ -248,8 +249,12 @@ function render() {
   });
 
   buildSelectOptions(subsectionSection, sections, (item) => item.title);
-  const parentItems = noteParent.value === 'section' ? sections : state.subsections;
-  buildSelectOptions(noteParentSelect, parentItems, (item) => item.title);
+  const parentItems = state.subsections;
+  const labelFn = (item) => {
+    const sectionTitle = sectionTitles.get(item.section_id) || 'Unknown section';
+    return `${sectionTitle} · ${item.title}`;
+  };
+  buildSelectOptions(noteParentSelect, parentItems, labelFn);
 }
 
 function buildNoteItem(note, noteIndex, list) {
@@ -442,8 +447,12 @@ subsectionForm.addEventListener('submit', async (event) => {
 });
 
 noteParent.addEventListener('change', () => {
-  const items = noteParent.value === 'section' ? state.sections : state.subsections;
-  buildSelectOptions(noteParentSelect, items, (item) => item.title);
+  const sectionTitles = new Map(state.sections.map((section) => [section.id, section.title]));
+  const labelFn = (item) => {
+    const sectionTitle = sectionTitles.get(item.section_id) || 'Unknown section';
+    return `${sectionTitle} · ${item.title}`;
+  };
+  buildSelectOptions(noteParentSelect, state.subsections, labelFn);
 });
 
 noteForm.addEventListener('submit', async (event) => {
@@ -453,8 +462,8 @@ noteForm.addEventListener('submit', async (event) => {
     const payload = {
       name: noteForm.noteName.value.trim(),
       url: noteForm.noteUrl.value.trim(),
-      section_id: noteParent.value === 'section' ? parentId : null,
-      subsection_id: noteParent.value === 'subsection' ? parentId : null,
+      section_id: null,
+      subsection_id: parentId,
     };
     await createNote(payload);
     noteForm.reset();
