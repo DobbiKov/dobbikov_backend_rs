@@ -159,7 +159,11 @@ function render() {
       await moveSection(section.id, sections[index + 1].id);
     });
 
-    actions.append(saveBtn, deleteBtn, upBtn, downBtn);
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'toggle-btn';
+    toggleBtn.textContent = 'Collapse';
+
+    actions.append(toggleBtn, saveBtn, deleteBtn, upBtn, downBtn);
 
     const subsectionList = document.createElement('div');
     subsectionList.className = 'list';
@@ -208,7 +212,11 @@ function render() {
         await moveSubsection(subsection.id, subsections[subIndex + 1].id);
       });
 
-      subActions.append(subSave, subDelete, subUp, subDown);
+      const subToggle = document.createElement('button');
+      subToggle.className = 'toggle-btn';
+      subToggle.textContent = 'Collapse';
+
+      subActions.append(subToggle, subSave, subDelete, subUp, subDown);
 
       const notesList = document.createElement('div');
       notesList.className = 'list';
@@ -216,6 +224,11 @@ function render() {
 
       notes.forEach((note, noteIndex) => {
         notesList.appendChild(buildNoteItem(note, noteIndex, notes));
+      });
+
+      subToggle.addEventListener('click', () => {
+        const isCollapsed = notesList.classList.toggle('collapsed');
+        subToggle.textContent = isCollapsed ? 'Expand' : 'Collapse';
       });
 
       subItem.append(subTitle, subEdit, subActions, notesList);
@@ -229,21 +242,30 @@ function render() {
       sectionNotes.appendChild(buildNoteItem(note, noteIndex, sectionNoteItems));
     });
 
+    const sectionBody = document.createElement('div');
+    sectionBody.className = 'section-body';
+
     card.append(title, editInput, actions);
     if (subsections.length) {
       const subHeader = document.createElement('div');
       subHeader.className = 'tag';
       subHeader.textContent = 'Subsections';
-      card.appendChild(subHeader);
-      card.appendChild(subsectionList);
+      sectionBody.appendChild(subHeader);
+      sectionBody.appendChild(subsectionList);
     }
     if (sectionNoteItems.length) {
       const noteHeader = document.createElement('div');
       noteHeader.className = 'tag';
       noteHeader.textContent = 'Notes';
-      card.appendChild(noteHeader);
-      card.appendChild(sectionNotes);
+      sectionBody.appendChild(noteHeader);
+      sectionBody.appendChild(sectionNotes);
     }
+
+    card.appendChild(sectionBody);
+    toggleBtn.addEventListener('click', () => {
+      const isCollapsed = sectionBody.classList.toggle('collapsed');
+      toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+    });
 
     sectionsList.appendChild(card);
   });
