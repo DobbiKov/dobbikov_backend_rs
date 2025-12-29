@@ -26,12 +26,12 @@ SERVER_ADDR="127.0.0.1:3000"
 3. Build:
 
 ```
-cargo build
+cargo build -r
 ```
 
 ## Run the API
 ```
-cargo run
+./target/release/backend-rs
 ```
 
 The server will create missing tables on startup.
