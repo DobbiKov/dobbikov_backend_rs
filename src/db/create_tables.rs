@@ -53,6 +53,7 @@ async fn create_notes_table(pool: &sqlx::Pool<sqlx::MySql>) {
         CREATE TABLE IF NOT EXISTS notes (\
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
             name TEXT NOT NULL,\
+            description TEXT NOT NULL,\
             url TEXT NOT NULL,\
             position INT UNSIGNED,\
             section_id INT UNSIGNED,\
@@ -63,6 +64,41 @@ async fn create_notes_table(pool: &sqlx::Pool<sqlx::MySql>) {
         );\
         ";
     let _ = sqlx::query(query_str).execute(pool).await;
+}
+
+pub async fn notes_description_column_exists(
+    pool: &sqlx::Pool<sqlx::MySql>,
+) -> Result<bool, sqlx::Error> {
+    let query = sqlx::query_scalar::<_, i64>(
+        "\
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS \
+        WHERE TABLE_SCHEMA = DATABASE() \
+          AND TABLE_NAME = 'notes' \
+          AND COLUMN_NAME = 'description'\
+        ",
+    );
+    let count = query.fetch_one(pool).await?;
+    Ok(count > 0)
+}
+
+pub async fn ensure_notes_description_column_exists(
+    pool: &sqlx::Pool<sqlx::MySql>,
+) -> Result<bool, sqlx::Error> {
+    if notes_description_column_exists(pool).await? {
+        return Ok(false);
+    }
+
+    sqlx::query("ALTER TABLE notes ADD COLUMN description TEXT AFTER name")
+        .execute(pool)
+        .await?;
+
+    if notes_description_column_exists(pool).await? {
+        return Ok(true);
+    }
+
+    Err(sqlx::Error::Protocol(
+        "notes.description column is still missing after ALTER TABLE".into(),
+    ))
 }
 
 pub async fn create_required_tables(pool: &sqlx::Pool<sqlx::MySql>) {

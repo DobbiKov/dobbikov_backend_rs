@@ -1,8 +1,8 @@
+use axum::http::header;
+use axum::http::Method;
 use loggit::{info, logger, Level};
 use pass_hashing::hash_password;
 use std::net::SocketAddr;
-use axum::http::header;
-use axum::http::Method;
 use tower_http::cors::{Any, CorsLayer};
 
 pub mod db;
@@ -29,6 +29,9 @@ async fn main() {
     };
     info!("The connection was successfully established, checking tables");
     db::create_tables::create_required_tables(&pool).await;
+    db::create_tables::ensure_notes_description_column_exists(&pool)
+        .await
+        .expect("failed to verify notes.description column");
     info!("The tables were verified and the missing ones were successfully created");
 
     let addr: SocketAddr = std::env::var("SERVER_ADDR")
@@ -60,7 +63,5 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .expect("failed to bind server address");
-    axum::serve(listener, app)
-        .await
-        .expect("server error");
+    axum::serve(listener, app).await.expect("server error");
 }

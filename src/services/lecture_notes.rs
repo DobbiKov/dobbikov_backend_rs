@@ -3,6 +3,7 @@ use serde::Serialize;
 
 pub struct CreateNoteForm {
     pub name: String,
+    pub description: String,
     pub url: String,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
@@ -10,6 +11,7 @@ pub struct CreateNoteForm {
 
 pub struct UpdateNoteForm {
     pub name: Option<String>,
+    pub description: Option<String>,
     pub url: Option<String>,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
@@ -30,6 +32,7 @@ pub struct GetNotesForm {
 pub struct NoteReturn {
     pub id: u32,
     pub name: String,
+    pub description: String,
     pub url: String,
     pub position: u32,
     pub section_id: Option<u32>,
@@ -41,6 +44,7 @@ impl From<db::lecture_notes::NoteFromDb> for NoteReturn {
         Self {
             id: value.id,
             name: value.name,
+            description: value.description,
             url: value.url,
             position: value.position,
             section_id: value.section_id,
@@ -62,6 +66,7 @@ pub async fn create_note(
         pool,
         db::lecture_notes::CreateNoteForm {
             name: form.name,
+            description: form.description,
             url: form.url,
             section_id: form.section_id,
             subsection_id: form.subsection_id,
@@ -96,7 +101,9 @@ pub async fn get_notes(
     .await;
     match res {
         Ok(list) => Ok(list.into_iter().map(NoteReturn::from).collect()),
-        Err(db::lecture_notes::GetNotesError::UnexpectedError) => Err(GetNotesError::UnexpectedError),
+        Err(db::lecture_notes::GetNotesError::UnexpectedError) => {
+            Err(GetNotesError::UnexpectedError)
+        }
     }
 }
 
@@ -118,9 +125,7 @@ pub async fn get_note(pool: &sqlx::Pool<sqlx::MySql>, id: u32) -> Result<NoteRet
     match res {
         Ok(val) => Ok(NoteReturn::from(val)),
         Err(db::lecture_notes::GetNoteError::NotFoundError) => Err(GetNoteError::NotFoundError),
-        Err(db::lecture_notes::GetNoteError::UnexpectedError) => {
-            Err(GetNoteError::UnexpectedError)
-        }
+        Err(db::lecture_notes::GetNoteError::UnexpectedError) => Err(GetNoteError::UnexpectedError),
     }
 }
 
@@ -140,6 +145,7 @@ pub async fn update_note(
         pool,
         db::lecture_notes::UpdateNoteForm {
             name: form.name,
+            description: form.description,
             url: form.url,
             section_id: form.section_id,
             subsection_id: form.subsection_id,
@@ -170,10 +176,7 @@ pub enum DeleteNoteError {
     UnexpectedError,
 }
 
-pub async fn delete_note(
-    pool: &sqlx::Pool<sqlx::MySql>,
-    id: u32,
-) -> Result<(), DeleteNoteError> {
+pub async fn delete_note(pool: &sqlx::Pool<sqlx::MySql>, id: u32) -> Result<(), DeleteNoteError> {
     db::lecture_notes::delete_note(
         pool,
         db::lecture_notes::GetNotesForm {
@@ -192,10 +195,7 @@ pub enum MoveNoteError {
     CantSwapFromDifferentSubsections,
 }
 
-pub async fn move_note(
-    pool: &sqlx::Pool<sqlx::MySql>,
-    ids: [u32; 2],
-) -> Result<(), MoveNoteError> {
+pub async fn move_note(pool: &sqlx::Pool<sqlx::MySql>, ids: [u32; 2]) -> Result<(), MoveNoteError> {
     let res = db::lecture_notes::swap_notes(pool, ids).await;
     match res {
         Ok(()) => Ok(()),

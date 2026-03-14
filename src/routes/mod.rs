@@ -1,5 +1,5 @@
-use axum::middleware;
 use axum::http::StatusCode;
+use axum::middleware;
 use axum::routing::{get, options, post, put};
 use axum::{response::Html, response::IntoResponse, response::Response, Router};
 use serde::Serialize;
@@ -30,6 +30,7 @@ pub struct AppState {
 pub struct RootNote {
     pub id: u32,
     pub name: String,
+    pub description: String,
     pub url: String,
     pub position: u32,
     pub section_id: Option<u32>,
@@ -113,6 +114,7 @@ async fn root_index(
         let note = RootNote {
             id: note.id,
             name: note.name,
+            description: note.description,
             url: note.url,
             position: note.position,
             section_id: note.section_id,
@@ -191,11 +193,7 @@ async fn create_user_page() -> Html<&'static str> {
 }
 
 async fn styles_css() -> Response {
-    (
-        [(axum::http::header::CONTENT_TYPE, "text/css")],
-        STYLES_CSS,
-    )
-        .into_response()
+    ([(axum::http::header::CONTENT_TYPE, "text/css")], STYLES_CSS).into_response()
 }
 
 async fn login_js() -> Response {
@@ -321,10 +319,8 @@ pub fn router(state: AppState) -> Router {
         public_routes = public_routes.route("/users/register", post(users::register));
     }
 
-    admin_routes = admin_routes.route_layer(middleware::from_fn_with_state(
-        state.clone(),
-        admin_guard,
-    ));
+    admin_routes =
+        admin_routes.route_layer(middleware::from_fn_with_state(state.clone(), admin_guard));
 
     Router::new()
         .merge(public_routes)

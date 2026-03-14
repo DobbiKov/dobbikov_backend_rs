@@ -4,6 +4,7 @@ use loggit::{trace, warn};
 /// The form used to create a new note.
 pub struct CreateNoteForm {
     pub name: String,
+    pub description: String,
     pub url: String,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
@@ -14,6 +15,7 @@ pub struct CreateNoteForm {
 pub struct NoteFromDb {
     pub id: u32,
     pub name: String,
+    pub description: String,
     pub url: String,
     pub position: u32,
     pub section_id: Option<u32>,
@@ -106,7 +108,7 @@ pub async fn get_notes(
 ) -> Result<Vec<NoteFromDb>, GetNotesError> {
     let (conditions, params) = form.to_conditions_params();
     let pre_query_str = format!(
-        "SELECT * FROM notes {} {} {}",
+        "SELECT id, name, COALESCE(description, '') AS description, url, position, section_id, subsection_id FROM notes {} {} {}",
         if !conditions.is_empty() { "WHERE" } else { "" },
         conditions.join(match form.or_and {
             OrAnd::And => " AND ",
@@ -127,8 +129,14 @@ pub async fn get_notes(
             VecWrapper::Bool(val) => query.bind(val),
         };
     }
-    let notes: Vec<NoteFromDb> = query.fetch_all(pool).await.unwrap();
-    Ok(notes)
+    let notes: Result<Vec<NoteFromDb>, sqlx::Error> = query.fetch_all(pool).await;
+    match notes {
+        Ok(notes) => Ok(notes),
+        Err(err) => {
+            warn!("{:?}", err);
+            Err(GetNotesError::UnexpectedError)
+        }
+    }
 }
 
 /// Error type when trying to get a single note.
@@ -184,14 +192,15 @@ pub async fn create_note(
         }
     };
 
-    let res = sqlx::query!(
-        "INSERT INTO notes (name, url, position, section_id, subsection_id) VALUES (?, ?, ?, ?, ?)",
-        note_form.name,
-        note_form.url,
-        next_pos,
-        note_form.section_id,
-        note_form.subsection_id,
+    let res = sqlx::query(
+        "INSERT INTO notes (name, description, url, position, section_id, subsection_id) VALUES (?, ?, ?, ?, ?, ?)",
     )
+    .bind(note_form.name)
+    .bind(note_form.description)
+    .bind(note_form.url)
+    .bind(next_pos)
+    .bind(note_form.section_id)
+    .bind(note_form.subsection_id)
     .execute(pool)
     .await;
     trace!("{:?}", res);
@@ -204,6 +213,7 @@ pub async fn create_note(
 /// The form used to update one or more fields of a note.
 pub struct UpdateNoteForm {
     pub name: Option<String>,
+    pub description: Option<String>,
     pub url: Option<String>,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
@@ -213,6 +223,7 @@ pub struct UpdateNoteForm {
 impl UpdateNoteForm {
     pub fn is_all_none(&self) -> bool {
         self.name.is_none()
+            && self.description.is_none()
             && self.url.is_none()
             && self.section_id.is_none()
             && self.subsection_id.is_none()
@@ -253,6 +264,10 @@ pub async fn update_notes(
     if let Some(name) = note_form.name {
         update_columns.push("name = ?".to_string());
         update_params.push(VecWrapper::String(name));
+    }
+    if let Some(description) = note_form.description {
+        update_columns.push("description = ?".to_string());
+        update_params.push(VecWrapper::String(description));
     }
     if let Some(url) = note_form.url {
         update_columns.push("url = ?".to_string());

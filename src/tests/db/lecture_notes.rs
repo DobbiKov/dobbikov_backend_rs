@@ -51,6 +51,7 @@ pub async fn create_note_test() {
         &pool,
         CreateNoteForm {
             name: "Note 1".to_string(),
+            description: "Description 1".to_string(),
             url: "http://note1.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -68,6 +69,7 @@ pub async fn create_note_test() {
         &pool,
         CreateNoteForm {
             name: "Note 2".to_string(),
+            description: "Description 2".to_string(),
             url: "http://note2.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -85,6 +87,7 @@ pub async fn create_note_test() {
         &pool,
         CreateNoteForm {
             name: "Global Note".to_string(),
+            description: "Global description".to_string(),
             url: "http://globalnote.com".to_string(),
             section_id: None,
             subsection_id: None,
@@ -104,10 +107,13 @@ pub async fn create_note_test() {
     notes_vec.sort_by_key(|n| n.position);
     assert_eq!(notes_vec.len(), 3);
     assert_eq!(notes_vec[0].name, "Note 1");
+    assert_eq!(notes_vec[0].description, "Description 1");
     assert_eq!(notes_vec[0].position, 0);
     assert_eq!(notes_vec[1].name, "Note 2");
+    assert_eq!(notes_vec[1].description, "Description 2");
     assert_eq!(notes_vec[1].position, 1);
     assert_eq!(notes_vec[2].name, "Global Note");
+    assert_eq!(notes_vec[2].description, "Global description");
     assert_eq!(notes_vec[2].position, 2);
 
     db::create_tables::drop_all_tables(&pool).await;
@@ -144,6 +150,7 @@ pub async fn update_note_test() {
         &pool,
         CreateNoteForm {
             name: "Note 1".to_string(),
+            description: "Description 1".to_string(),
             url: "http://note1.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -154,6 +161,7 @@ pub async fn update_note_test() {
         &pool,
         CreateNoteForm {
             name: "Note 2".to_string(),
+            description: "Description 2".to_string(),
             url: "http://note2.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -166,6 +174,7 @@ pub async fn update_note_test() {
         &pool,
         UpdateNoteForm {
             name: Some("Updated Note".to_string()),
+            description: None,
             url: None,
             section_id: None,
             subsection_id: None,
@@ -184,6 +193,7 @@ pub async fn update_note_test() {
         &pool,
         UpdateNoteForm {
             name: None,
+            description: None,
             url: None,
             section_id: None,
             subsection_id: None,
@@ -202,6 +212,7 @@ pub async fn update_note_test() {
         &pool,
         UpdateNoteForm {
             name: Some("Updated Note 1".to_string()),
+            description: Some("Updated description 1".to_string()),
             url: None,
             section_id: None,
             subsection_id: None,
@@ -227,12 +238,14 @@ pub async fn update_note_test() {
     assert!(note.is_ok());
     let note = note.unwrap();
     assert_eq!(note.name, "Updated Note 1".to_string());
+    assert_eq!(note.description, "Updated description 1".to_string());
 
     // Update all notes (global update) to have a new URL.
     let res = update_notes(
         &pool,
         UpdateNoteForm {
             name: None,
+            description: None,
             url: Some("http://updatedurl.com".to_string()),
             section_id: None,
             subsection_id: None,
@@ -293,6 +306,7 @@ pub async fn swap_notes_test() {
         &pool,
         CreateNoteForm {
             name: "Note 1".to_string(),
+            description: "Description 1".to_string(),
             url: "http://note1.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -303,6 +317,7 @@ pub async fn swap_notes_test() {
         &pool,
         CreateNoteForm {
             name: "Note 2".to_string(),
+            description: "Description 2".to_string(),
             url: "http://note2.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -360,6 +375,7 @@ pub async fn swap_notes_test() {
         &pool,
         CreateNoteForm {
             name: "Note 3".to_string(),
+            description: "Description 3".to_string(),
             url: "http://note3.com".to_string(),
             section_id: Some(2),
             subsection_id: Some(2),
@@ -428,6 +444,7 @@ pub async fn delete_notes_test() {
         &pool,
         CreateNoteForm {
             name: "Note 1".to_string(),
+            description: "Description 1".to_string(),
             url: "http://note1.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -438,6 +455,7 @@ pub async fn delete_notes_test() {
         &pool,
         CreateNoteForm {
             name: "Note 2".to_string(),
+            description: "Description 2".to_string(),
             url: "http://note2.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -493,6 +511,7 @@ pub async fn delete_one_note_test() {
         &pool,
         CreateNoteForm {
             name: "Note 1".to_string(),
+            description: "Description 1".to_string(),
             url: "http://note1.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),
@@ -503,6 +522,7 @@ pub async fn delete_one_note_test() {
         &pool,
         CreateNoteForm {
             name: "Note 2".to_string(),
+            description: "Description 2".to_string(),
             url: "http://note2.com".to_string(),
             section_id: Some(1),
             subsection_id: Some(1),

@@ -281,22 +281,60 @@ function render() {
 
 function buildNoteItem(note, noteIndex, list) {
   const noteItem = document.createElement('div');
-  noteItem.className = 'item';
+  noteItem.className = 'item note-item';
+
+  const noteSummary = document.createElement('div');
+  noteSummary.className = 'note-summary';
 
   const noteTitle = document.createElement('div');
   noteTitle.className = 'item-title';
   noteTitle.textContent = `${note.name} (pos ${note.position})`;
 
+  noteSummary.append(noteTitle);
+
   const noteInputs = document.createElement('div');
-  noteInputs.className = 'inline-inputs';
+  noteInputs.className = 'note-fields';
+
+  const nameField = document.createElement('label');
+  nameField.className = 'field-stack';
+
+  const nameLabel = document.createElement('span');
+  nameLabel.className = 'field-label';
+  nameLabel.textContent = 'Name';
 
   const nameInput = document.createElement('input');
   nameInput.value = note.name;
+  nameInput.placeholder = 'Note title';
+  nameField.append(nameLabel, nameInput);
+
+  const urlField = document.createElement('label');
+  urlField.className = 'field-stack';
+
+  const urlLabel = document.createElement('span');
+  urlLabel.className = 'field-label field-label-url';
+  urlLabel.textContent = 'URL';
 
   const urlInput = document.createElement('input');
+  urlInput.type = 'url';
   urlInput.value = note.url;
+  urlInput.placeholder = 'https://example.com/resource';
+  urlInput.className = 'url-input';
+  urlField.append(urlLabel, urlInput);
 
-  noteInputs.append(nameInput, urlInput);
+  const descriptionField = document.createElement('label');
+  descriptionField.className = 'field-stack field-span-full';
+
+  const descriptionLabel = document.createElement('span');
+  descriptionLabel.className = 'field-label field-label-description';
+  descriptionLabel.textContent = 'Description';
+
+  const descriptionInput = document.createElement('textarea');
+  descriptionInput.rows = 4;
+  descriptionInput.value = note.description || '';
+  descriptionInput.placeholder = 'Short explanation shown with the note';
+  descriptionField.append(descriptionLabel, descriptionInput);
+
+  noteInputs.append(nameField, urlField, descriptionField);
 
   const noteActions = document.createElement('div');
   noteActions.className = 'actions';
@@ -304,7 +342,12 @@ function buildNoteItem(note, noteIndex, list) {
   const noteSave = document.createElement('button');
   noteSave.textContent = 'Save';
   noteSave.addEventListener('click', async () => {
-    await updateNote(note.id, nameInput.value.trim(), urlInput.value.trim());
+    await updateNote(
+      note.id,
+      nameInput.value.trim(),
+      descriptionInput.value.trim(),
+      urlInput.value.trim()
+    );
   });
 
   const noteDelete = document.createElement('button');
@@ -338,7 +381,7 @@ function buildNoteItem(note, noteIndex, list) {
   link.textContent = 'Open';
 
   noteActions.append(noteSave, noteDelete, noteUp, noteDown, link);
-  noteItem.append(noteTitle, noteInputs, noteActions);
+  noteItem.append(noteSummary, noteInputs, noteActions);
   return noteItem;
 }
 
@@ -422,10 +465,10 @@ async function createNote(payload) {
   });
 }
 
-async function updateNote(id, name, url) {
+async function updateNote(id, name, description, url) {
   await apiFetch(`/notes/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ name, url }),
+    body: JSON.stringify({ name, description, url }),
   });
   await loadAll();
 }
@@ -483,6 +526,7 @@ noteForm.addEventListener('submit', async (event) => {
     const parentId = Number(noteForm.noteParentSelect.value);
     const payload = {
       name: noteForm.noteName.value.trim(),
+      description: noteForm.noteDescription.value.trim(),
       url: noteForm.noteUrl.value.trim(),
       section_id: null,
       subsection_id: parentId,

@@ -44,7 +44,10 @@ pub async fn register(
     .map_err(|_| error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to register user"))?;
     Ok((
         StatusCode::CREATED,
-        [(header::SET_COOKIE, format!("session_token={}; Path=/; SameSite=Lax", auth.token))],
+        [(
+            header::SET_COOKIE,
+            format!("session_token={}; Path=/; SameSite=Lax", auth.token),
+        )],
         Json(auth),
     )
         .into_response())
@@ -75,7 +78,10 @@ pub async fn login(
     })?;
     Ok((
         StatusCode::OK,
-        [(header::SET_COOKIE, format!("session_token={}; Path=/; SameSite=Lax", auth.token))],
+        [(
+            header::SET_COOKIE,
+            format!("session_token={}; Path=/; SameSite=Lax", auth.token),
+        )],
         Json(auth),
     )
         .into_response())

@@ -1,7 +1,7 @@
 pub mod create_tables;
 pub mod lecture_notes;
-pub mod sessions;
 pub mod sections;
+pub mod sessions;
 pub mod subsections;
 pub mod users;
 

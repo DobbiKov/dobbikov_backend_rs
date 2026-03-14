@@ -42,14 +42,9 @@ pub async fn create_section(
     pool: &sqlx::Pool<sqlx::MySql>,
     form: CreateSectionForm,
 ) -> Result<(), CreateSectionError> {
-    db::sections::create_section(
-        pool,
-        db::sections::CreateSectionForm {
-            title: form.title,
-        },
-    )
-    .await
-    .map_err(|_| CreateSectionError::UnexpectedError)
+    db::sections::create_section(pool, db::sections::CreateSectionForm { title: form.title })
+        .await
+        .map_err(|_| CreateSectionError::UnexpectedError)
 }
 
 #[derive(Debug)]

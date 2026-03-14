@@ -11,6 +11,7 @@ use crate::services;
 #[derive(Deserialize)]
 pub struct CreateNoteRequest {
     pub name: String,
+    pub description: Option<String>,
     pub url: String,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
@@ -19,6 +20,7 @@ pub struct CreateNoteRequest {
 #[derive(Deserialize)]
 pub struct UpdateNoteRequest {
     pub name: Option<String>,
+    pub description: Option<String>,
     pub url: Option<String>,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
@@ -50,6 +52,7 @@ pub async fn create_note(
         &state.pool,
         services::lecture_notes::CreateNoteForm {
             name: payload.name,
+            description: payload.description.unwrap_or_default(),
             url: payload.url,
             section_id: payload.section_id,
             subsection_id: payload.subsection_id,
@@ -90,14 +93,16 @@ pub async fn get_note(
     State(state): State<AppState>,
     Path(id): Path<u32>,
 ) -> Result<Json<services::lecture_notes::NoteReturn>, Response> {
-    let note = services::lecture_notes::get_note(&state.pool, id).await.map_err(|err| match err {
-        services::lecture_notes::GetNoteError::NotFoundError => {
-            error_response(StatusCode::NOT_FOUND, "note not found")
-        }
-        services::lecture_notes::GetNoteError::UnexpectedError => {
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to fetch note")
-        }
-    })?;
+    let note = services::lecture_notes::get_note(&state.pool, id)
+        .await
+        .map_err(|err| match err {
+            services::lecture_notes::GetNoteError::NotFoundError => {
+                error_response(StatusCode::NOT_FOUND, "note not found")
+            }
+            services::lecture_notes::GetNoteError::UnexpectedError => {
+                error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to fetch note")
+            }
+        })?;
     Ok(Json(note))
 }
 
@@ -111,6 +116,7 @@ pub async fn update_note(
         id,
         services::lecture_notes::UpdateNoteForm {
             name: payload.name,
+            description: payload.description,
             url: payload.url,
             section_id: payload.section_id,
             subsection_id: payload.subsection_id,

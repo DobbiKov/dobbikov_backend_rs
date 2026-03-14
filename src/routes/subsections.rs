@@ -48,7 +48,12 @@ pub async fn create_subsection(
         },
     )
     .await
-    .map_err(|_| error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to create subsection"))?;
+    .map_err(|_| {
+        error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "failed to create subsection",
+        )
+    })?;
     Ok((
         StatusCode::CREATED,
         Json(MessageResponse {
@@ -85,20 +90,17 @@ pub async fn get_subsection(
     State(state): State<AppState>,
     Path(id): Path<u32>,
 ) -> Result<Json<services::subsections::SubsectionReturn>, Response> {
-    let subsection =
-        services::subsections::get_subsection(&state.pool, id)
-            .await
-            .map_err(|err| match err {
-                services::subsections::GetSubsectionError::NotFoundError => {
-                    error_response(StatusCode::NOT_FOUND, "subsection not found")
-                }
-                services::subsections::GetSubsectionError::UnexpectedError => {
-                    error_response(
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        "failed to fetch subsection",
-                    )
-                }
-            })?;
+    let subsection = services::subsections::get_subsection(&state.pool, id)
+        .await
+        .map_err(|err| match err {
+            services::subsections::GetSubsectionError::NotFoundError => {
+                error_response(StatusCode::NOT_FOUND, "subsection not found")
+            }
+            services::subsections::GetSubsectionError::UnexpectedError => error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to fetch subsection",
+            ),
+        })?;
     Ok(Json(subsection))
 }
 
@@ -124,9 +126,10 @@ pub async fn update_subsection(
         services::subsections::UpdateSubsectionError::NothingToUpdateError => {
             error_response(StatusCode::BAD_REQUEST, "nothing to update")
         }
-        services::subsections::UpdateSubsectionError::UnexpectedError => {
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to update subsection")
-        }
+        services::subsections::UpdateSubsectionError::UnexpectedError => error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "failed to update subsection",
+        ),
     })?;
     Ok(Json(MessageResponse {
         message: "updated".to_string(),
@@ -166,9 +169,10 @@ pub async fn move_subsection(
                     "cannot swap subsections from different sections",
                 )
             }
-            services::subsections::MoveSubsectionError::UnexpectedError => {
-                error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to move subsection")
-            }
+            services::subsections::MoveSubsectionError::UnexpectedError => error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to move subsection",
+            ),
         })?;
     Ok(Json(MessageResponse {
         message: "moved".to_string(),

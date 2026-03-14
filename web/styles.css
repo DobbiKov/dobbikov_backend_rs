@@ -266,8 +266,25 @@ button:active {
   background: #fffefb;
 }
 
+.note-item {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
 .item-title {
   font-weight: 600;
+}
+
+.note-summary {
+  display: grid;
+  gap: 4px;
+}
+
+.item-description {
+  color: var(--muted);
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .split {
@@ -284,6 +301,58 @@ button:active {
   margin-top: 10px;
 }
 
+.note-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field-stack {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(192, 91, 56, 0.12);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.field-label-url {
+  background: rgba(42, 111, 107, 0.12);
+  color: var(--accent-2);
+}
+
+.field-label-description {
+  background: rgba(106, 95, 79, 0.14);
+  color: var(--ink);
+}
+
+.field-span-full {
+  grid-column: 1 / -1;
+}
+
+.url-input {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.95rem;
+}
+
+.note-fields textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
 .notice {
   font-size: 0.9rem;
   color: var(--muted);
@@ -297,6 +366,10 @@ button:active {
   }
 
   .panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .note-fields {
     grid-template-columns: 1fr;
   }
 }
