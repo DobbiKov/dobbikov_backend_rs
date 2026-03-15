@@ -164,7 +164,7 @@ fn lecture_notes_absolute_url() -> String {
     format!("{SITE_BASE_URL}/notes_pages/lecture_notes.html")
 }
 
-fn note_item_html(note: &GeneratedNote, position: usize) -> String {
+fn note_item_html(note: &GeneratedNote, position: usize, note_page_file: &str) -> String {
     let meta_text = if note.url.trim().is_empty() {
         "No source URL".to_string()
     } else {
@@ -181,7 +181,8 @@ fn note_item_html(note: &GeneratedNote, position: usize) -> String {
     };
 
     format!(
-        "<article class=\"note-card\" itemprop=\"itemListElement\" itemscope itemtype=\"https://schema.org/LearningResource\"><meta itemprop=\"position\" content=\"{position}\" /><meta itemprop=\"educationalUse\" content=\"study reference\" /><meta itemprop=\"isAccessibleForFree\" content=\"true\" /><div class=\"note-content\"><h4 itemprop=\"name\">{}</h4><p class=\"note-meta\">{}</p>{}</div></article>",
+        "<article class=\"note-card\" itemprop=\"itemListElement\" itemscope itemtype=\"https://schema.org/LearningResource\"><meta itemprop=\"position\" content=\"{position}\" /><meta itemprop=\"educationalUse\" content=\"study reference\" /><meta itemprop=\"isAccessibleForFree\" content=\"true\" /><div class=\"note-content\"><h4 itemprop=\"name\"><a href=\"{}\" style=\"text-decoration:none;color:inherit;\">{}</a></h4><p class=\"note-meta\">{}</p>{}</div></article>",
+        escape_html(note_page_file),
         escape_html(&note.name),
         escape_html(&meta_text),
         link_html
@@ -203,7 +204,7 @@ fn subsection_html(
     )
 }
 
-fn build_lecture_notes_markup(data: &GeneratedLectureNotes) -> (String, String) {
+fn build_lecture_notes_markup(data: &GeneratedLectureNotes, notes_dir_name: &str) -> (String, String) {
     let mut toc_items = Vec::new();
     let mut sections_html = Vec::new();
     let mut used_ids = HashSet::new();
@@ -228,7 +229,10 @@ fn build_lecture_notes_markup(data: &GeneratedLectureNotes) -> (String, String) 
                 .notes
                 .iter()
                 .enumerate()
-                .map(|(index, note)| note_item_html(note, index + 1))
+                .map(|(index, note)| {
+                    let file = note_file_name(&section.title, None, &note.name);
+                    note_item_html(note, index + 1, &format!("{notes_dir_name}/{file}"))
+                })
                 .collect::<Vec<_>>();
             section_parts.push(subsection_html(
                 &format!("{section_id}-section-notes"),
@@ -249,7 +253,10 @@ fn build_lecture_notes_markup(data: &GeneratedLectureNotes) -> (String, String) 
                 .notes
                 .iter()
                 .enumerate()
-                .map(|(index, note)| note_item_html(note, index + 1))
+                .map(|(index, note)| {
+                    let file = note_file_name(&section.title, Some(&subsection.title), &note.name);
+                    note_item_html(note, index + 1, &format!("{notes_dir_name}/{file}"))
+                })
                 .collect::<Vec<_>>();
 
             section_parts.push(subsection_html(
@@ -495,7 +502,11 @@ pub async fn generate_static_pages(
         fs::create_dir_all(parent).await?;
     }
 
-    let (toc_html, sections_html) = build_lecture_notes_markup(&data);
+    let notes_dir_name = std::path::Path::new(&notes_dir)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or(&notes_dir);
+    let (toc_html, sections_html) = build_lecture_notes_markup(&data, notes_dir_name);
     let lecture_notes_html = LECTURE_NOTES_TEMPLATE
         .replace(
             "{{LECTURE_NOTES_META_DESCRIPTION}}",
