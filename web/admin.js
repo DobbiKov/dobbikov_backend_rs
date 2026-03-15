@@ -23,6 +23,7 @@ const statusEl = document.getElementById('status');
 const refreshBtn = document.getElementById('refreshBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const createUserBtn = document.getElementById('createUserBtn');
+const generatePagesBtn = document.getElementById('generatePagesBtn');
 
 const sectionForm = document.getElementById('sectionForm');
 const subsectionForm = document.getElementById('subsectionForm');
@@ -486,6 +487,13 @@ async function moveNote(firstId, secondId) {
   await loadAll();
 }
 
+async function generatePages() {
+  const result = await apiFetch('/pages/generate', {
+    method: 'POST',
+  });
+  setStatus(result.message || 'Pages generated');
+}
+
 sectionForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   try {
@@ -540,6 +548,13 @@ noteForm.addEventListener('submit', async (event) => {
 });
 
 refreshBtn.addEventListener('click', () => loadAll());
+generatePagesBtn.addEventListener('click', async () => {
+  try {
+    await generatePages();
+  } catch (err) {
+    setStatus(err.message || 'Failed to generate pages');
+  }
+});
 createUserBtn.addEventListener('click', () => {
   window.location.href = '/admin/create-user';
 });

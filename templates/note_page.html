@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="../ukraine.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2a5d8f" />
+    <script>
+      (() => {
+        const key = "dobbikov-theme";
+        try {
+          const savedTheme = localStorage.getItem(key);
+          if (savedTheme === "dark" || savedTheme === "light") {
+            document.documentElement.setAttribute("data-theme", savedTheme);
+          }
+        } catch (error) {
+          // Ignore storage access issues.
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="apple-touch-icon" href="../logo192.png" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{STYLES_CSS_PATH}}" />
+    <title>{{NOTE_TITLE}} — Lecture Notes</title>
+    <meta name="description" content="{{NOTE_DESCRIPTION_META}}" />
+    <meta name="keywords" content="{{NOTE_KEYWORDS}}" />
+    <meta name="author" content="Yehor Korotenko" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://korotenky.com/notes_pages/{{NOTE_FILE_NAME}}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://korotenky.com/notes_pages/{{NOTE_FILE_NAME}}" />
+    <meta property="og:title" content="{{NOTE_TITLE}} — Lecture Notes" />
+    <meta property="og:description" content="{{NOTE_DESCRIPTION_META}}" />
+    <meta property="article:section" content="{{NOTE_SECTION_NAME}}" />
+    <meta property="og:image" content="https://korotenky.com/assets/myphoto2.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="{{NOTE_TITLE}} — Lecture Notes" />
+    <meta name="twitter:description" content="{{NOTE_DESCRIPTION_META}}" />
+    <meta name="twitter:image" content="https://korotenky.com/assets/myphoto2.png" />
+    <script type="application/ld+json">{{NOTE_STRUCTURED_DATA}}</script>
+    <style>
+      .single-note-layout {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 48px 24px 72px;
+      }
+
+      .single-note-card {
+        padding: 32px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(42, 93, 143, 0.12);
+        box-shadow: 0 24px 60px rgba(19, 38, 58, 0.12);
+      }
+
+      .single-note-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .single-note-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(42, 93, 143, 0.08);
+        color: #2a5d8f;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .single-note-title {
+        margin: 0 0 18px;
+      }
+
+      .single-note-description {
+        line-height: 1.7;
+        color: #435266;
+        margin: 0 0 30px;
+        white-space: pre-wrap;
+      }
+
+      .single-note-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+
+      .single-note-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .single-note-link-primary {
+        background: #2a5d8f;
+        color: #fff;
+      }
+
+      .single-note-link-secondary {
+        border: 1px solid rgba(42, 93, 143, 0.22);
+        color: #2a5d8f;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lect_notes_main_cont">
+      <header class="header_main_cont">
+        <div class="header_main_cont_inner">
+          <nav class="main_cont_routs" aria-label="Primary">
+            <button
+              class="nav-toggle"
+              type="button"
+              data-nav-toggle
+              aria-expanded="false"
+              aria-controls="primary-nav-menu"
+              aria-label="Open navigation menu"
+            >
+              <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <a href="../index.html" class="main_header_a main_brand">DOBBIKOV</a>
+            <button
+              class="theme-toggle"
+              type="button"
+              data-theme-toggle
+              aria-label="Switch to dark theme"
+              aria-pressed="false"
+            >
+              <i class="fas fa-moon" aria-hidden="true" data-theme-icon></i>
+              <span class="sr-only" data-theme-toggle-label>Switch to dark theme</span>
+            </button>
+            <div class="main_nav_links" id="primary-nav-menu" data-nav-menu>
+              <a href="../index.html#about" class="main_header_a">ABOUT ME</a>
+              <a href="lecture_notes.html" class="main_header_a">LECTURE NOTES</a>
+              <a href="../index.html#contact" class="main_header_a">CONTACT ME</a>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      <main class="single-note-layout">
+        <article class="single-note-card">
+          <div class="single-note-meta">
+            <span class="single-note-tag">{{NOTE_META_PRIMARY}}</span>
+            <span class="single-note-tag">{{NOTE_META_SECONDARY}}</span>
+          </div>
+          <h1 class="single-note-title">{{NOTE_TITLE}}</h1>
+          <p class="single-note-description">{{NOTE_DESCRIPTION_BODY}}</p>
+          <div class="single-note-actions">
+            <a class="single-note-link single-note-link-primary" href="{{NOTE_URL}}" target="_blank" rel="noopener noreferrer">
+              Open PDF
+            </a>
+            <a class="single-note-link single-note-link-secondary" href="lecture_notes.html">
+              Back to lecture notes
+            </a>
+          </div>
+        </article>
+      </main>
+    </div>
+    <script src="../theme.js"></script>
+  </body>
+</html>

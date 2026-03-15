@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="../ukraine.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2a5d8f" />
+    <script>
+      (() => {
+        const key = "dobbikov-theme";
+        try {
+          const savedTheme = localStorage.getItem(key);
+          if (savedTheme === "dark" || savedTheme === "light") {
+            document.documentElement.setAttribute("data-theme", savedTheme);
+          }
+        } catch (error) {
+          // Ignore storage access issues.
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="apple-touch-icon" href="../logo192.png" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{STYLES_CSS_PATH}}" />
+    <title>Lecture Notes — Yehor Korotenko</title>
+    <meta name="description" content="{{LECTURE_NOTES_META_DESCRIPTION}}" />
+    <meta name="keywords" content="{{LECTURE_NOTES_META_KEYWORDS}}" />
+    <meta name="author" content="Yehor Korotenko" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://korotenky.com/notes_pages/lecture_notes.html" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://korotenky.com/notes_pages/lecture_notes.html" />
+    <meta property="og:title" content="Lecture Notes — Yehor Korotenko" />
+    <meta property="og:description" content="{{LECTURE_NOTES_META_DESCRIPTION}}" />
+    <meta property="og:image" content="https://korotenky.com/assets/myphoto2.png" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Lecture Notes — Yehor Korotenko" />
+    <meta name="twitter:description" content="{{LECTURE_NOTES_META_DESCRIPTION}}" />
+    <meta name="twitter:image" content="https://korotenky.com/assets/myphoto2.png" />
+    <script type="application/ld+json">{{LECTURE_NOTES_STRUCTURED_DATA}}</script>
+  </head>
+  <body>
+    <div class="lect_notes_main_cont">
+      <header class="header_main_cont">
+        <div class="header_main_cont_inner">
+          <nav class="main_cont_routs" aria-label="Primary">
+            <button
+              class="nav-toggle"
+              type="button"
+              data-nav-toggle
+              aria-expanded="false"
+              aria-controls="primary-nav-menu"
+              aria-label="Open navigation menu"
+            >
+              <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <a href="../index.html" class="main_header_a main_brand">DOBBIKOV</a>
+            <button
+              class="theme-toggle"
+              type="button"
+              data-theme-toggle
+              aria-label="Switch to dark theme"
+              aria-pressed="false"
+            >
+              <i class="fas fa-moon" aria-hidden="true" data-theme-icon></i>
+              <span class="sr-only" data-theme-toggle-label>Switch to dark theme</span>
+            </button>
+            <div class="main_nav_links" id="primary-nav-menu" data-nav-menu>
+              <a href="../index.html#about" class="main_header_a">ABOUT ME</a>
+              <a href="lecture_notes.html" class="main_header_a main_cont_routs_active" aria-current="page"
+                >LECTURE NOTES</a
+              >
+              <a href="../index.html#contact" class="main_header_a">CONTACT ME</a>
+            </div>
+          </nav>
+        </div>
+      </header>
+      <main class="lect_notes_main_cont_inner" itemscope itemtype="https://schema.org/CollectionPage">
+        <meta itemprop="name" content="Lecture Notes" />
+        <meta itemprop="description" content="{{LECTURE_NOTES_META_DESCRIPTION}}" />
+        <h1 class="lect_notes_page-title">Lecture Notes</h1>
+        <h2 class="lect_notes_page-sub_title">by Yehor Korotenko</h2>
+
+        <div
+          class="lecture-notes-status"
+          data-lecture-notes="status"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></div>
+
+        <div class="lect_notes_content-container">
+          <nav class="table-of-contents" data-toc-shell aria-label="Lecture note sections">
+            <button
+              class="toc-menu-toggle"
+              type="button"
+              data-toc-toggle
+              aria-expanded="false"
+              aria-controls="lecture-toc-menu"
+              aria-label="Open subjects list"
+            >
+              <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <h3 class="toc-current-subject" data-lecture-notes="current-subject">Subjects</h3>
+            <span class="toc-shell-spacer" aria-hidden="true"></span>
+            <ul data-lecture-notes="toc" id="lecture-toc-menu">{{TOC_ITEMS}}</ul>
+          </nav>
+
+          <section class="lect_notes_sections" data-lecture-notes="sections">{{SECTIONS_HTML}}</section>
+        </div>
+      </main>
+    </div>
+    <script src="../theme.js"></script>
+    <script src="lecture-notes.js"></script>
+  </body>
+</html>

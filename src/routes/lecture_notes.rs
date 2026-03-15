@@ -176,3 +176,23 @@ pub async fn move_note(
         message: "moved".to_string(),
     }))
 }
+
+pub async fn generate_static_pages(
+    State(state): State<AppState>,
+) -> Result<Json<MessageResponse>, Response> {
+    let result = services::static_pages::generate_static_pages(&state.pool)
+        .await
+        .map_err(|_| {
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to generate lecture notes pages",
+            )
+        })?;
+
+    Ok(Json(MessageResponse {
+        message: format!(
+            "generated notes_pages/lecture_notes.html, notes_pages/lecture-notes.js, and {} note pages",
+            result.note_pages
+        ),
+    }))
+}

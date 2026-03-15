@@ -311,6 +311,10 @@ pub fn router(state: AppState) -> Router {
             put(lecture_notes::update_note).delete(lecture_notes::delete_note),
         )
         .route("/notes/move", post(lecture_notes::move_note))
+        .route(
+            "/pages/generate",
+            post(lecture_notes::generate_static_pages),
+        )
         .route("/users", get(users::list_users));
 
     if state.register_only_for_admin {
