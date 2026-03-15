@@ -568,6 +568,11 @@ async fn write_note_page(
             } else {
                 json!(note.url)
             },
+            "encodingFormat": if note.url.trim_end_matches('/').to_lowercase().ends_with(".pdf") {
+                serde_json::Value::String("application/pdf".to_string())
+            } else {
+                serde_json::Value::Null
+            },
         })
         .to_string(),
     );
