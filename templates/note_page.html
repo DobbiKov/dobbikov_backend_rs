@@ -57,7 +57,7 @@
       .single-note-card {
         padding: 32px;
         border-radius: 28px;
-        background: rgba(255, 255, 255, 0.9);
+        background: var(--color-surface, rgba(255, 255, 255, 0.9));
         border: 1px solid rgba(42, 93, 143, 0.12);
         box-shadow: 0 24px 60px rgba(19, 38, 58, 0.12);
       }
@@ -83,12 +83,19 @@
       }
 
       .single-note-title {
+        margin: 0 0 4px;
+        color: var(--color-text, inherit);
+      }
+
+      .single-note-author {
         margin: 0 0 18px;
+        font-size: 0.95rem;
+        color: var(--color-text-muted, #6b7a8d);
       }
 
       .single-note-description {
         line-height: 1.7;
-        color: #435266;
+        color: var(--color-text-muted, #435266);
         margin: 0 0 30px;
         white-space: pre-wrap;
       }
@@ -164,6 +171,7 @@
             <span class="single-note-tag">{{NOTE_META_SECONDARY}}</span>
           </div>
           <h1 class="single-note-title">{{NOTE_TITLE}}</h1>
+          <p class="single-note-author">by Yehor Korotenko</p>
           <p class="single-note-description">{{NOTE_DESCRIPTION_BODY}}</p>
           <div class="single-note-actions">
             <a class="single-note-link single-note-link-primary" href="{{NOTE_URL}}" target="_blank" rel="noopener noreferrer">
