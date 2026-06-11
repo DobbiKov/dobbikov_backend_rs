@@ -137,6 +137,10 @@
     });
 
     setActiveTocButton(activeEntry.button);
+    const targetId = activeEntry.button.getAttribute('data-target-id');
+    if (targetId) {
+      history.replaceState(null, '', `#${targetId}`);
+    }
   };
 
   const setupSectionTracking = (entries) => {
