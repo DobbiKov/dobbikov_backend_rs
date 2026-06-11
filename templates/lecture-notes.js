@@ -109,7 +109,7 @@
   };
 
   const setActiveTocButton = (targetButton) => {
-    const tocButtons = tocList.querySelectorAll('button');
+    const tocButtons = tocList.querySelectorAll('a');
     tocButtons.forEach((button) => {
       const isActive = button === targetButton;
       button.classList.toggle('is-active', isActive);
@@ -172,7 +172,7 @@
   };
 
   const bindTocEntries = () => {
-    const tocButtons = [...tocList.querySelectorAll('button[data-target-id]')];
+    const tocButtons = [...tocList.querySelectorAll('a[data-target-id]')];
     const trackingEntries = [];
 
     tocButtons.forEach((button) => {
@@ -186,11 +186,13 @@
         return;
       }
 
-      button.addEventListener('click', () => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
         sectionEl.scrollIntoView({
           behavior: reduceMotionQuery.matches ? 'auto' : 'smooth',
           block: 'start',
         });
+        history.pushState(null, '', `#${targetId}`);
         setActiveTocButton(button);
         closeTocMenu();
       });

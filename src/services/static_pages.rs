@@ -212,7 +212,8 @@ fn build_lecture_notes_markup(data: &GeneratedLectureNotes, notes_dir_name: &str
     for (section_index, section) in data.sections.iter().enumerate() {
         let section_id = unique_id("section", &section.title, section_index, &mut used_ids);
         toc_items.push(format!(
-            "<li><button type=\"button\" data-target-id=\"{}\" aria-current=\"false\">{}</button></li>",
+            "<li><a href=\"#{}\" data-target-id=\"{}\" aria-current=\"false\">{}</a></li>",
+            escape_html(&section_id),
             escape_html(&section_id),
             escape_html(&section.title)
         ));
