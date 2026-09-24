@@ -5,7 +5,8 @@ Rust + MySQL backend for managing lecture notes (sections, subsections, notes) w
 ## Features
 - Users can register/login and receive bearer tokens (7-day sessions).
 - Admin-only access for create/edit/delete/move actions.
-- Public read access to notes, sections, and subsections.
+- Public read access to notes, sections, subsections, and tags.
+- Colored tags that can be assigned to notes (and used to filter them).
 - Static HTML/CSS/JS admin console in `web/`.
 
 ## Requirements
@@ -54,6 +55,8 @@ Public:
 - `GET /subsections/:id`
 - `GET /notes`
 - `GET /notes/:id`
+- `GET /tags`
+- `GET /tags/:id`
 - `POST /users/register`
 - `POST /users/login`
 
@@ -70,7 +73,38 @@ Admin-only:
 - `PUT /notes/:id`
 - `DELETE /notes/:id`
 - `POST /notes/move`
+- `POST /tags`
+- `PUT /tags/:id`
+- `DELETE /tags/:id`
+- `PUT /notes/:id/tags`
+- `POST /notes/:id/tags/:tag_id`
+- `DELETE /notes/:id/tags/:tag_id`
 - `GET /users`
+
+## Tags
+Tags have a unique `name` (max 64 characters) and a `color` in hex. Colors are
+accepted as `#rrggbb` or `#rgb` and stored as lowercase `#rrggbb`.
+
+```
+POST /tags            {"name": "Algebra", "color": "#1e90ff"}  -> 201 {"id": 1, "name": "Algebra", "color": "#1e90ff"}
+PUT  /tags/1          {"color": "#ff8800"}                     (name and color are optional)
+DELETE /tags/1        removes the tag and unassigns it from every note
+```
+
+Assigning tags to notes:
+
+```
+PUT    /notes/5/tags    {"tag_ids": [1, 3]}   replace the note's tags ([] clears them)
+POST   /notes/5/tags/2                         add one tag
+DELETE /notes/5/tags/2                         remove one tag
+```
+
+`POST /notes` and `PUT /notes/:id` also accept an optional `tag_ids` array
+(on update it replaces the note's tags). Unknown tag ids are rejected with `404`,
+a duplicate tag name with `409`, an invalid name or color with `400`.
+
+Every note returned by `GET /notes`, `GET /notes/:id` and `GET /` has a `tags`
+array of `{id, name, color}`. Filter notes by tag with `GET /notes?tag_id=1`.
 
 ## Using the Admin UI
 The UI is static and can be opened directly in a browser.
@@ -79,6 +113,7 @@ The UI is static and can be opened directly in a browser.
 2. Or open `web/login.html` if you already have a user.
 3. After login/register, you’ll land in `web/admin.html`.
 4. Use the create panels on the left and the list view on the right to edit, move, or delete content.
+5. Manage tags (name + color) in the Tags panel; toggle a note's tags on its card and press Save.
 
 Notes:
 - The UI stores the API base URL and token in localStorage.

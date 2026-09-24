@@ -415,6 +415,7 @@ pub async fn generate_static_pages(
             position: None,
             section_id: None,
             subsection_id: None,
+            tag_id: None,
             limit: None,
         },
     )

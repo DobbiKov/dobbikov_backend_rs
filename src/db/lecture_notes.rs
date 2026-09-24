@@ -43,6 +43,8 @@ pub struct GetNotesForm {
     pub position: Option<u32>,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
+    /// Only select notes that have the tag with this id assigned.
+    pub tag_id: Option<u32>,
     pub or_and: OrAnd,
     pub limit: Option<u32>,
 }
@@ -76,6 +78,10 @@ impl GetNotesForm {
             conditions.push("subsection_id = ?".to_string());
             params.push(VecWrapper::Num(subsection_id));
         }
+        if let Some(tag_id) = self.tag_id {
+            conditions.push("id IN (SELECT note_id FROM note_tags WHERE tag_id = ?)".to_string());
+            params.push(VecWrapper::Num(tag_id));
+        }
         (conditions, params)
     }
 }
@@ -89,6 +95,7 @@ impl Default for GetNotesForm {
             position: None,
             section_id: None,
             subsection_id: None,
+            tag_id: None,
             or_and: Default::default(),
             limit: None,
         }
@@ -171,12 +178,12 @@ pub async fn get_note(
     }
 }
 
-/// Create a new note. Determines the next note position:
+/// Create a new note and return its id. Determines the next note position:
 /// if a subsection is provided, it uses that; otherwise, it uses a global max.
 pub async fn create_note(
     pool: &sqlx::Pool<sqlx::MySql>,
     note_form: CreateNoteForm,
-) -> Result<(), ()> {
+) -> Result<u32, ()> {
     let next_pos = if let Some(subsec_id) = note_form.subsection_id {
         match get_max_note_position_in_subsection(pool, subsec_id).await {
             Some(num) => num + 1,
@@ -205,7 +212,7 @@ pub async fn create_note(
     .await;
     trace!("{:?}", res);
     match res {
-        Ok(_) => Ok(()),
+        Ok(val) => Ok(val.last_insert_id() as u32),
         Err(_) => Err(()),
     }
 }

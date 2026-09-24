@@ -8,6 +8,7 @@ pub mod lecture_notes;
 pub mod responses;
 pub mod sections;
 pub mod subsections;
+pub mod tags;
 pub mod users;
 
 const LOGIN_HTML: &str = include_str!("../../web/login.html");
@@ -35,6 +36,7 @@ pub struct RootNote {
     pub position: u32,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
+    pub tags: Vec<crate::services::tags::TagReturn>,
 }
 
 #[derive(Serialize)]
@@ -97,6 +99,7 @@ async fn root_index(
             position: None,
             section_id: None,
             subsection_id: None,
+            tag_id: None,
             limit: None,
         },
     )
@@ -119,6 +122,7 @@ async fn root_index(
             position: note.position,
             section_id: note.section_id,
             subsection_id: note.subsection_id,
+            tags: note.tags,
         };
 
         if let Some(sub_id) = note.subsection_id {
@@ -289,6 +293,8 @@ pub fn router(state: AppState) -> Router {
         .route("/subsections/{id}", get(subsections::get_subsection))
         .route("/notes", get(lecture_notes::list_notes))
         .route("/notes/{id}", get(lecture_notes::get_note))
+        .route("/tags", get(tags::list_tags))
+        .route("/tags/{id}", get(tags::get_tag))
         .route("/users/login", post(users::login));
 
     let mut admin_routes = Router::new()
@@ -311,6 +317,13 @@ pub fn router(state: AppState) -> Router {
             put(lecture_notes::update_note).delete(lecture_notes::delete_note),
         )
         .route("/notes/move", post(lecture_notes::move_note))
+        .route("/notes/{id}/tags", put(tags::set_note_tags))
+        .route(
+            "/notes/{id}/tags/{tag_id}",
+            post(tags::add_tag_to_note).delete(tags::remove_tag_from_note),
+        )
+        .route("/tags", post(tags::create_tag))
+        .route("/tags/{id}", put(tags::update_tag).delete(tags::delete_tag))
         .route(
             "/pages/generate",
             post(lecture_notes::generate_static_pages),

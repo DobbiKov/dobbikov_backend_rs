@@ -28,16 +28,20 @@ const generatePagesBtn = document.getElementById('generatePagesBtn');
 const sectionForm = document.getElementById('sectionForm');
 const subsectionForm = document.getElementById('subsectionForm');
 const noteForm = document.getElementById('noteForm');
+const tagForm = document.getElementById('tagForm');
 
 const subsectionSection = document.getElementById('subsectionSection');
 const noteParent = document.getElementById('noteParent');
 const noteParentSelect = document.getElementById('noteParentSelect');
 const sectionsList = document.getElementById('sectionsList');
+const tagsList = document.getElementById('tagsList');
+const noteTagPicker = document.getElementById('noteTagPicker');
 
 const state = {
   sections: [],
   subsections: [],
   notes: [],
+  tags: [],
 };
 
 if (!token) {
@@ -87,7 +91,101 @@ function buildSelectOptions(select, items, labelFn) {
   });
 }
 
+// Pick black or white text depending on how light the tag color is.
+function tagTextColor(hex) {
+  const value = hex.replace('#', '');
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? '#2b2b2b' : '#ffffff';
+}
+
+// Fill `container` with toggleable tag chips; returns a function reading the selected ids.
+function buildTagPicker(container, selectedIds = []) {
+  container.innerHTML = '';
+  const selected = new Set(selectedIds);
+  const checkboxes = [];
+
+  if (!state.tags.length) {
+    const empty = document.createElement('span');
+    empty.className = 'small';
+    empty.textContent = 'No tags yet. Create one in the Tags panel.';
+    container.appendChild(empty);
+  }
+
+  state.tags.forEach((tag) => {
+    const chip = document.createElement('label');
+    chip.className = 'tag-chip';
+    chip.style.setProperty('--tag-color', tag.color);
+    chip.style.setProperty('--tag-text', tagTextColor(tag.color));
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = tag.id;
+    checkbox.checked = selected.has(tag.id);
+    checkboxes.push(checkbox);
+
+    const dot = document.createElement('span');
+    dot.className = 'tag-dot';
+
+    const name = document.createElement('span');
+    name.textContent = tag.name;
+
+    chip.append(checkbox, dot, name);
+    container.appendChild(chip);
+  });
+
+  return () => checkboxes.filter((box) => box.checked).map((box) => Number(box.value));
+}
+
+function renderTags() {
+  tagsList.innerHTML = '';
+  state.tags.forEach((tag) => {
+    const row = document.createElement('div');
+    row.className = 'tag-row';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = tag.color;
+    colorInput.title = 'Tag color';
+
+    const nameInput = document.createElement('input');
+    nameInput.value = tag.name;
+    nameInput.maxLength = 64;
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.addEventListener('click', async () => {
+      try {
+        await updateTag(tag.id, nameInput.value.trim(), colorInput.value);
+      } catch (err) {
+        setStatus(err.message || 'Failed to update tag');
+      }
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'secondary';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', async () => {
+      if (!window.confirm(`Delete tag "${tag.name}"? It will be removed from all notes.`)) {
+        return;
+      }
+      try {
+        await deleteTag(tag.id);
+      } catch (err) {
+        setStatus(err.message || 'Failed to delete tag');
+      }
+    });
+
+    row.append(colorInput, nameInput, saveBtn, deleteBtn);
+    tagsList.appendChild(row);
+  });
+}
+
 function render() {
+  renderTags();
+  buildTagPicker(noteTagPicker);
   sectionsList.innerHTML = '';
   const sections = sortByPosition(state.sections);
   const sectionTitles = new Map(sections.map((section) => [section.id, section.title]));
@@ -335,7 +433,22 @@ function buildNoteItem(note, noteIndex, list) {
   descriptionInput.placeholder = 'Short explanation shown with the note';
   descriptionField.append(descriptionLabel, descriptionInput);
 
-  noteInputs.append(nameField, urlField, descriptionField);
+  const tagsField = document.createElement('div');
+  tagsField.className = 'field-stack field-span-full';
+
+  const tagsLabel = document.createElement('span');
+  tagsLabel.className = 'field-label';
+  tagsLabel.textContent = 'Tags';
+
+  const tagsPicker = document.createElement('div');
+  tagsPicker.className = 'tag-picker';
+  const getSelectedTagIds = buildTagPicker(
+    tagsPicker,
+    (note.tags || []).map((tag) => tag.id)
+  );
+  tagsField.append(tagsLabel, tagsPicker);
+
+  noteInputs.append(nameField, urlField, descriptionField, tagsField);
 
   const noteActions = document.createElement('div');
   noteActions.className = 'actions';
@@ -343,12 +456,17 @@ function buildNoteItem(note, noteIndex, list) {
   const noteSave = document.createElement('button');
   noteSave.textContent = 'Save';
   noteSave.addEventListener('click', async () => {
-    await updateNote(
-      note.id,
-      nameInput.value.trim(),
-      descriptionInput.value.trim(),
-      urlInput.value.trim()
-    );
+    try {
+      await updateNote(
+        note.id,
+        nameInput.value.trim(),
+        descriptionInput.value.trim(),
+        urlInput.value.trim(),
+        getSelectedTagIds()
+      );
+    } catch (err) {
+      setStatus(err.message || 'Failed to update note');
+    }
   });
 
   const noteDelete = document.createElement('button');
@@ -389,14 +507,16 @@ function buildNoteItem(note, noteIndex, list) {
 async function loadAll() {
   clearStatus();
   try {
-    const [sections, subsections, notes] = await Promise.all([
+    const [sections, subsections, notes, tags] = await Promise.all([
       apiFetch('/sections', { method: 'GET' }),
       apiFetch('/subsections', { method: 'GET' }),
       apiFetch('/notes', { method: 'GET' }),
+      apiFetch('/tags', { method: 'GET' }),
     ]);
     state.sections = sections;
     state.subsections = subsections;
     state.notes = notes;
+    state.tags = tags;
     render();
   } catch (err) {
     setStatus(err.message || 'Failed to load data');
@@ -466,11 +586,31 @@ async function createNote(payload) {
   });
 }
 
-async function updateNote(id, name, description, url) {
+async function updateNote(id, name, description, url, tagIds) {
   await apiFetch(`/notes/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ name, description, url }),
+    body: JSON.stringify({ name, description, url, tag_ids: tagIds }),
   });
+  await loadAll();
+}
+
+async function createTag(name, color) {
+  await apiFetch('/tags', {
+    method: 'POST',
+    body: JSON.stringify({ name, color }),
+  });
+}
+
+async function updateTag(id, name, color) {
+  await apiFetch(`/tags/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ name, color }),
+  });
+  await loadAll();
+}
+
+async function deleteTag(id) {
+  await apiFetch(`/tags/${id}`, { method: 'DELETE' });
   await loadAll();
 }
 
@@ -532,18 +672,33 @@ noteForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   try {
     const parentId = Number(noteForm.noteParentSelect.value);
+    const tagIds = [...noteTagPicker.querySelectorAll('input:checked')].map((box) =>
+      Number(box.value)
+    );
     const payload = {
       name: noteForm.noteName.value.trim(),
       description: noteForm.noteDescription.value.trim(),
       url: noteForm.noteUrl.value.trim(),
       section_id: null,
       subsection_id: parentId,
+      tag_ids: tagIds,
     };
     await createNote(payload);
     noteForm.reset();
     await loadAll();
   } catch (err) {
     setStatus(err.message || 'Failed to create note');
+  }
+});
+
+tagForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  try {
+    await createTag(tagForm.tagName.value.trim(), tagForm.tagColor.value);
+    tagForm.tagName.value = '';
+    await loadAll();
+  } catch (err) {
+    setStatus(err.message || 'Failed to create tag');
   }
 });
 

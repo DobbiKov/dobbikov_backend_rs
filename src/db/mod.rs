@@ -3,6 +3,7 @@ pub mod lecture_notes;
 pub mod sections;
 pub mod sessions;
 pub mod subsections;
+pub mod tags;
 pub mod users;
 
 use dotenvy::dotenv;
