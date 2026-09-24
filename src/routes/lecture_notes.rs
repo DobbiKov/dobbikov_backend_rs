@@ -4,7 +4,7 @@ use axum::response::Response;
 use axum::Json;
 use serde::Deserialize;
 
-use crate::routes::responses::{error_response, MessageResponse};
+use crate::routes::responses::{error_response, tags_not_found_response, MessageResponse};
 use crate::routes::AppState;
 use crate::services;
 
@@ -15,6 +15,7 @@ pub struct CreateNoteRequest {
     pub url: String,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
+    pub tag_ids: Option<Vec<u32>>,
 }
 
 #[derive(Deserialize)]
@@ -25,6 +26,7 @@ pub struct UpdateNoteRequest {
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
     pub position: Option<u32>,
+    pub tag_ids: Option<Vec<u32>>,
 }
 
 #[derive(Deserialize)]
@@ -35,6 +37,7 @@ pub struct NoteQuery {
     pub position: Option<u32>,
     pub section_id: Option<u32>,
     pub subsection_id: Option<u32>,
+    pub tag_id: Option<u32>,
     pub limit: Option<u32>,
 }
 
@@ -56,10 +59,18 @@ pub async fn create_note(
             url: payload.url,
             section_id: payload.section_id,
             subsection_id: payload.subsection_id,
+            tag_ids: payload.tag_ids.unwrap_or_default(),
         },
     )
     .await
-    .map_err(|_| error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to create note"))?;
+    .map_err(|err| match err {
+        services::lecture_notes::CreateNoteError::TagsNotFoundError(ids) => {
+            tags_not_found_response(&ids)
+        }
+        services::lecture_notes::CreateNoteError::UnexpectedError => {
+            error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to create note")
+        }
+    })?;
     Ok((
         StatusCode::CREATED,
         Json(MessageResponse {
@@ -81,6 +92,7 @@ pub async fn list_notes(
             position: query.position,
             section_id: query.section_id,
             subsection_id: query.subsection_id,
+            tag_id: query.tag_id,
             limit: query.limit,
         },
     )
@@ -121,6 +133,7 @@ pub async fn update_note(
             section_id: payload.section_id,
             subsection_id: payload.subsection_id,
             position: payload.position,
+            tag_ids: payload.tag_ids,
         },
     )
     .await
@@ -130,6 +143,9 @@ pub async fn update_note(
         }
         services::lecture_notes::UpdateNoteError::NothingToUpdateError => {
             error_response(StatusCode::BAD_REQUEST, "nothing to update")
+        }
+        services::lecture_notes::UpdateNoteError::TagsNotFoundError(ids) => {
+            tags_not_found_response(&ids)
         }
         services::lecture_notes::UpdateNoteError::UnexpectedError => {
             error_response(StatusCode::INTERNAL_SERVER_ERROR, "failed to update note")

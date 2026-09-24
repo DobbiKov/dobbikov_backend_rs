@@ -22,3 +22,11 @@ pub fn error_response(status: StatusCode, message: impl Into<String>) -> Respons
     )
         .into_response()
 }
+
+pub fn tags_not_found_response(ids: &[u32]) -> Response {
+    let ids: Vec<String> = ids.iter().map(|id| id.to_string()).collect();
+    error_response(
+        StatusCode::NOT_FOUND,
+        format!("tags not found: {}", ids.join(", ")),
+    )
+}

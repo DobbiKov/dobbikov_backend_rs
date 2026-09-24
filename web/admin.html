@@ -75,8 +75,30 @@
               <label for="noteParentSelect">Parent</label>
               <select id="noteParentSelect" name="noteParentSelect"></select>
             </div>
+            <div>
+              <label>Tags</label>
+              <div id="noteTagPicker" class="tag-picker"></div>
+            </div>
             <button type="submit">Add note</button>
           </form>
+        </div>
+
+        <div class="card">
+          <h2>Tags</h2>
+          <form id="tagForm" class="form-grid">
+            <div class="tag-inputs">
+              <div>
+                <label for="tagName">Name</label>
+                <input id="tagName" name="tagName" maxlength="64" required />
+              </div>
+              <div>
+                <label for="tagColor">Color</label>
+                <input id="tagColor" name="tagColor" type="color" value="#2a6f6b" />
+              </div>
+            </div>
+            <button type="submit">Add tag</button>
+          </form>
+          <div id="tagsList" class="list tags-list"></div>
         </div>
 
         <div class="alert" id="status" hidden></div>

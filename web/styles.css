@@ -353,6 +353,88 @@ button:active {
   resize: vertical;
 }
 
+.tag-inputs,
+.tag-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  gap: 10px;
+  align-items: end;
+}
+
+.tag-row {
+  grid-template-columns: 48px minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
+.tag-row button {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+
+.tags-list {
+  margin-top: 18px;
+}
+
+input[type="color"] {
+  height: 46px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.tag-row input[type="color"] {
+  height: 40px;
+}
+
+.tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--tag-color);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tag-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.tag-chip .tag-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tag-color);
+}
+
+.tag-chip:has(input:checked) {
+  background: var(--tag-color);
+  color: var(--tag-text);
+}
+
+.tag-chip:has(input:checked) .tag-dot {
+  background: var(--tag-text);
+}
+
+.tag-chip:has(input:focus-visible) {
+  outline: 2px solid rgba(192, 91, 56, 0.4);
+  outline-offset: 2px;
+}
+
 .notice {
   font-size: 0.9rem;
   color: var(--muted);

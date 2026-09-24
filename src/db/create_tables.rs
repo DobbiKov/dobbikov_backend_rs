@@ -66,6 +66,30 @@ async fn create_notes_table(pool: &sqlx::Pool<sqlx::MySql>) {
     let _ = sqlx::query(query_str).execute(pool).await;
 }
 
+async fn create_tags_table(pool: &sqlx::Pool<sqlx::MySql>) {
+    let query_str = "\
+        CREATE TABLE IF NOT EXISTS tags (\
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\
+            name VARCHAR(64) NOT NULL UNIQUE,\
+            color VARCHAR(7) NOT NULL\
+        );\
+        ";
+    let _ = sqlx::query(query_str).execute(pool).await;
+}
+
+async fn create_note_tags_table(pool: &sqlx::Pool<sqlx::MySql>) {
+    let query_str = "\
+        CREATE TABLE IF NOT EXISTS note_tags (\
+            note_id INT UNSIGNED NOT NULL,\
+            tag_id INT UNSIGNED NOT NULL,\
+            PRIMARY KEY (note_id, tag_id),\
+            FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,\
+            FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE\
+        );\
+        ";
+    let _ = sqlx::query(query_str).execute(pool).await;
+}
+
 pub async fn notes_description_column_exists(
     pool: &sqlx::Pool<sqlx::MySql>,
 ) -> Result<bool, sqlx::Error> {
@@ -107,16 +131,28 @@ pub async fn create_required_tables(pool: &sqlx::Pool<sqlx::MySql>) {
     create_sections_table(pool).await;
     create_subsections_table(pool).await;
     create_notes_table(pool).await;
+    create_tags_table(pool).await;
+    create_note_tags_table(pool).await;
 }
 pub async fn drop_all_tables(pool: &sqlx::Pool<sqlx::MySql>) {
     let query_strs = [
+        "DROP TABLE note_tags;",
+        "DROP TABLE tags;",
         "DROP TABLE notes;",
         "DROP TABLE subsections;",
         "DROP TABLE sections;",
         "DROP TABLE sessions;",
         "DROP TABLE users;",
     ];
-    let table_names = ["notes", "subsections", "sections", "sessions", "users"];
+    let table_names = [
+        "note_tags",
+        "tags",
+        "notes",
+        "subsections",
+        "sections",
+        "sessions",
+        "users",
+    ];
     for table_name in table_names {
         let query_str = format!("DROP TABLE IF EXISTS {} ;", table_name);
         let _ = sqlx::query(query_str.as_str()).execute(pool).await;
